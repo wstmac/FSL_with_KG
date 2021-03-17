@@ -1,0 +1,505 @@
+wikiID:ID,content,:LABEL
+Q1299240,interior space,Common_Node
+Q1798603,string instrument,Common_Node
+Q6607,guitar,Common_Node
+Q18643213,military equipment,Common_Node
+Q3444710,carton,Class_Node
+Q182940,dessert,Common_Node
+Q503992,name,Common_Node
+Q223557,physical object,Common_Node
+Q14524031,protective clothing,Common_Node
+Q19588495,composite chordophones,Common_Node
+Q1914636,activity,Common_Node
+Q3955017,intermediate good,Common_Node
+Q1756942,partial function,Common_Node
+Q38301,Gordon_setter,Class_Node
+Q11019,machine,Common_Node
+Q48628631,mixing_bowl,Class_Node
+Q7386,ant,Class_Node
+Q27043864,Q27043864,Common_Node
+Q386724,work,Common_Node
+Q811909,technological component,Common_Node
+Q1156686,roof shape,Common_Node
+Q19279121,free-emissions vehicle,Common_Node
+Q81103,cannon,Class_Node
+Q728,weapon,Common_Node
+Q516776,measurable function,Common_Node
+Q208322,carousel,Class_Node
+Q208364,wok,Class_Node
+Q5185,nematode,Class_Node
+Q11348,function,Common_Node
+Q945148,theater_curtain,Class_Node
+Q5639584,hairstyling tool,Common_Node
+Q15989253,part,Common_Node
+Q55182671,undersea landform,Common_Node
+Q25265,Felidae,Common_Node
+Q5280486,struck idiophone,Common_Node
+Q2424752,product,Common_Node
+Q837718,energy storage,Common_Node
+Q107425,landscape,Common_Node
+Q28728771,material substance,Common_Node
+Q67518978,occurrent,Common_Node
+Q336,science,Common_Node
+Q13389713,snorkel,Class_Node
+Q811679,structural element,Common_Node
+Q79782,motion,Common_Node
+Q362200,accessory,Common_Node
+Q811701,model series,Common_Node
+Q173651,African_hunting_dog,Class_Node
+Q488383,object,Common_Node
+Q55738960,electro-acoustic chordophones,Common_Node
+Q468402,tile,Common_Node
+Q1047113,specialty,Common_Node
+Q1229765,watercraft,Common_Node
+Q23958946,individual entity,Common_Node
+Q27096213,geographic entity,Common_Node
+Q1554231,resource,Common_Node
+Q82562,Anserini,Common_Node
+Q2384798,input-output device,Common_Node
+Q7556,Anatidae,Common_Node
+Q795052,individual,Common_Node
+Q3773693,kitchen utensil,Common_Node
+Q2127468,transport unit,Common_Node
+Q13191,orange,Class_Node
+Q522648,clothing in ancient Greece,Common_Node
+Q30178,jellyfish,Class_Node
+Q1475429,holster,Class_Node
+Q974850,missile,Class_Node
+Q1496967,territorial entity,Common_Node
+Q56147060,fire-making tool,Common_Node
+Q644309,rhinoceros_beetle,Class_Node
+Q38675,komondor,Class_Node
+Q24017465,third-order class,Common_Node
+Q83180,roof,Common_Node
+Q1360,Arthropoda,Common_Node
+Q16406,tobacco_shop,Class_Node
+Q66310125,nonbiological component,Common_Node
+Q216530,ashcan,Class_Node
+Q7377,mammal,Common_Node
+Q1364,fruit,Common_Node
+Q30546671,Q30546671,Common_Node
+Q402885,black-footed_ferret,Class_Node
+Q15088658,measured value,Common_Node
+Q194428,stage,Class_Node
+Q1515493,road vehicle,Common_Node
+Q3030569,protective device,Common_Node
+Q25519785,Artillery weapons,Common_Node
+Q2998482,clothing in the ancient world,Common_Node
+Q18498,Canis lupus,Common_Node
+Q26988402,Q26988402,Common_Node
+Q778637,output device,Common_Node
+Q4936952,anatomical structure,Common_Node
+Q2904042,bioconstruction,Common_Node
+Q39546,tool,Common_Node
+Q82604,design,Common_Node
+Q65138712,white_wolf,Class_Node
+Q839546,machine element,Common_Node
+Q15124452,Q15124452,Common_Node
+Q147398,ear,Class_Node
+Q1301433,land vehicle,Common_Node
+Q104385260,chemical propellant gun,Common_Node
+Q4026292,action,Common_Node
+Q105738,electrophone,Common_Node
+Q1293220,physical phenomenon,Common_Node
+Q1087850,parabolic reflector,Common_Node
+Q58416391,spatial entity,Common_Node
+Q12876,tank,Class_Node
+Q838312,pin,Common_Node
+Q23958852,variable-order class,Common_Node
+Q57306162,plucked necked box lutes,Common_Node
+Q340169,communication medium,Common_Node
+Q1371954,etui,Common_Node
+Q56887437,bus type,Common_Node
+Q50380212,floating object,Common_Node
+Q6671777,structure,Common_Node
+Q28367692,cavity,Common_Node
+Q10872571,portable media player,Common_Node
+Q6667323,big cat,Common_Node
+Q66098993,Q66098993,Common_Node
+Q2827268,gymnastic apparatus,Common_Node
+Q230262,plucked string instrument,Common_Node
+Q140,lion,Class_Node
+Q5268834,information and communications technology,Common_Node
+Q18593264,item of collection or exhibition,Common_Node
+Q47146,user interface,Common_Node
+Q16529344,goose,Class_Node
+Q55983715,organisms known by a particular common name,Common_Node
+Q61961344,group of physical objects,Common_Node
+Q7427595,sausage sandwich,Common_Node
+Q43806,Invertebrata,Common_Node
+Q21369154,hairstyle accessory,Common_Node
+Q631931,decorative arts,Common_Node
+Q7194062,flying machine,Common_Node
+Q28921572,common matter,Common_Node
+Q27481006,Q27481006,Common_Node
+Q159810,economy,Common_Node
+Q223924,unicycle,Class_Node
+Q5082128,mobile device,Common_Node
+Q26902770,Food products,Common_Node
+Q17334923,location,Common_Node
+Q3249551,process,Common_Node
+Q127666,frying_pan,Class_Node
+Q35120,entity,Common_Node
+Q98119401,group or class of physical objects,Common_Node
+Q1521410,kitchenware,Common_Node
+Q27096235,artificial geographic entity,Common_Node
+Q2002016,fastener,Common_Node
+Q2266685,upright,Class_Node
+Q27478161,Q27478161,Common_Node
+Q35825432,converter,Common_Node
+Q837515,solar collector,Common_Node
+Q2120578,zero-emissions vehicle,Common_Node
+Q31464082,source,Common_Node
+Q623270,horizontal_bar,Class_Node
+Q30038792,percussion idiophones,Common_Node
+Q5638,bus,Common_Node
+Q102074988,artificial physical structure,Common_Node
+Q303288,solar thermal energy,Common_Node
+Q15303351,art material,Common_Node
+Q19603939,building component,Common_Node
+Q103940464,continuant,Common_Node
+Q61989482,bin,Common_Node
+Q25403900,food ingredient,Common_Node
+Q59095968,home furnishing,Common_Node
+Q16722960,phenomenon,Common_Node
+Q76419950,information board,Common_Node
+Q21206,malamute,Class_Node
+Q17205,aircraft_carrier,Class_Node
+Q5099323,chime,Class_Node
+Q3966,computer hardware,Common_Node
+Q4393498,representation,Common_Node
+Q391414,architectural element,Common_Node
+Q2425052,electrical apparatus,Common_Node
+Q185167,three-toed_sloth,Class_Node
+Q268592,industry,Common_Node
+Q9081,knowledge,Common_Node
+Q12639,idiophone,Common_Node
+Q101401,bell,Common_Node
+Q361132,roofing,Common_Node
+Q811430,human-made geographic feature,Common_Node
+Q2912517,value,Common_Node
+Q188075,box,Common_Node
+Q67518233,process,Common_Node
+Q28791169,simple fruit,Common_Node
+Q1642862,multihull,Common_Node
+Q19361238,Wikidata metaclass,Common_Node
+Q2897903,goods and services,Common_Node
+Q1246258,artillery gun,Common_Node
+Q39322,Tibetan_mastiff,Class_Node
+Q629085,multivalued function,Common_Node
+Q42889,vehicle,Common_Node
+Q2625603,population,Common_Node
+Q2858615,electronic machine,Common_Node
+Q22809652,manufactured object,Common_Node
+Q768186,sports equipment,Common_Node
+Q19829125,absence,Common_Node
+Q31807746,furnishing,Common_Node
+Q16896124,bin,Common_Node
+Q1566584,hair_slide,Class_Node
+Q3054261,explosive device,Common_Node
+Q851782,tableware,Common_Node
+Q16521,taxon,Common_Node
+Q8205328,artificial physical object,Common_Node
+Q3749263,electrical device,Common_Node
+Q57815212,domesticated bird,Common_Node
+Q61954404,solar_dish,Class_Node
+Q16686448,artificial entity,Common_Node
+Q156428,inflorescence,Common_Node
+Q134015,meerkat,Class_Node
+Q190403,catamaran,Class_Node
+Q8148,industry,Common_Node
+Q15401930,product,Common_Node
+Q214609,material,Common_Node
+Q55724833,necked lutes,Common_Node
+Q2264369,front curtain,Common_Node
+Q9158768,storage,Common_Node
+Q960648,point of interest,Common_Node
+Q1823435,reflector,Common_Node
+Q38672,dog type,Common_Node
+Q24027526,fixed order metaclass of higher order,Common_Node
+Q7184903,abstract object,Common_Node
+Q16334295,group of humans,Common_Node
+Q267228,sound generator,Common_Node
+Q206615,building material,Common_Node
+Q596566,pencil_box,Class_Node
+Q129544,dugong,Class_Node
+Q2453629,drinking vessel,Common_Node
+Q1144661,amusement ride,Common_Node
+Q217594,class,Common_Node
+Q24027474,fourth-order class,Common_Node
+Q1422299,nutriment,Common_Node
+Q7590,transport,Common_Node
+Q2133296,space,Common_Node
+Q2800000,attraction,Common_Node
+Q6005984,baryonic matter,Common_Node
+Q1390,insect,Common_Node
+Q5469988,formalization,Common_Node
+Q12493,dome,Class_Node
+Q15618781,wheeled vehicle,Common_Node
+Q41291,rocket,Common_Node
+Q655686,commercial building,Common_Node
+Q956956,prayer_rug,Class_Node
+Q39201,pet,Common_Node
+Q28813620,set,Common_Node
+Q19478619,metaclass,Common_Node
+Q16798631,equipment,Common_Node
+Q37755,Ibizan_hound,Class_Node
+Q29043258,Other fruit and nuts,Common_Node
+Q144,dog,Common_Node
+Q26401003,individual animal,Common_Node
+Q184358,reef,Common_Node
+Q27043950,anatomical entity,Common_Node
+Q7406919,service,Common_Node
+Q9332,behavior,Common_Node
+Q1567371,digital media player,Common_Node
+Q1325045,toucan,Class_Node
+Q23668,beer_bottle,Class_Node
+Q485027,body armor,Common_Node
+Q16887380,group,Common_Node
+Q185785,ammunition,Common_Node
+Q2184715,durable good,Common_Node
+Q2151621,energy industry,Common_Node
+Q181055,hotdog,Class_Node
+Q1861297,king_crab,Class_Node
+Q82042,word class,Common_Node
+Q104127086,memory,Common_Node
+Q26902962,Q26902962,Common_Node
+Q4202245,alternative energy,Common_Node
+Q4406616,concrete object,Common_Node
+Q55724840,necked box lutes,Common_Node
+Q24017414,second-order class,Common_Node
+Q1190554,occurrence,Common_Node
+Q29651224,natural object,Common_Node
+Q337060,perceptible object,Common_Node
+Q1105339,cocktail_shaker,Class_Node
+Q153988,bowl,Common_Node
+Q20793164,armor,Common_Node
+Q56761669,concentrated solar power,Common_Node
+Q28555911,ordinary matter,Common_Node
+Q16325263,fireplace accessory,Common_Node
+Q47011175,floor covering,Common_Node
+Q1310239,component,Common_Node
+Q106106,wardrobe,Common_Node
+Q26907166,temporal entity,Common_Node
+Q1357761,utensil,Common_Node
+Q11416,gambling,Common_Node
+Q54940067,serial relation,Common_Node
+Q34749,social science,Common_Node
+Q930933,relation,Common_Node
+Q246672,mathematical object,Common_Node
+Q16391167,vessel,Common_Node
+Q622852,domesticated animal,Common_Node
+Q748611,finger food,Common_Node
+Q20937557,series,Common_Node
+Q58678,school_bus,Class_Node
+Q1522115,energy source,Common_Node
+Q614379,scoreboard,Class_Node
+Q36161,set,Common_Node
+Q99527517,collection entity,Common_Node
+Q78987,electric_guitar,Class_Node
+Q1808578,lutes,Common_Node
+Q1150070,change,Common_Node
+Q6657015,medical equipment,Common_Node
+Q50821977,electro-acoustic instruments,Common_Node
+Q15710813,physical structure,Common_Node
+Q107679,cliff,Class_Node
+Q3391431,bars apparatus,Common_Node
+Q1174791,escarpment,Common_Node
+Q57812559,animal living in captivity,Common_Node
+Q10675206,ingredient,Common_Node
+Q752870,motor vehicle,Common_Node
+Q30038759,handle lutes,Common_Node
+Q12488383,content,Common_Node
+Q838948,work of art,Common_Node
+Q14915034,course,Common_Node
+Q735,art,Common_Node
+Q153556,ranged weapon,Common_Node
+Q3300034,painting material,Common_Node
+Q1439598,photo equipment,Common_Node
+Q16334298,group of living things,Common_Node
+Q1483757,solar power,Common_Node
+Q21146257,type,Common_Node
+Q130368,armored fighting vehicle,Common_Node
+Q3769299,human behaviour,Common_Node
+Q14384,triceratops,Class_Node
+Q622805,green_mamba,Class_Node
+Q42679632,theater space,Common_Node
+Q24027515,fifth-order class,Common_Node
+Q17320256,physical process,Common_Node
+Q14745,furniture,Common_Node
+Q64418,artillery,Common_Node
+Q17537576,creative work,Common_Node
+Q191851,vase,Class_Node
+Q24060707,plant organ,Common_Node
+Q1194058,disposable product,Common_Node
+Q104602244,rug,Common_Node
+Q15142889,weapon family,Common_Node
+Q27480917,Perennial crops (CPA 2008),Common_Node
+Q63247926,human-powered transport,Common_Node
+Q25170208,house_finch,Class_Node
+Q11446,ship,Common_Node
+Q55721729,percussion vessels,Common_Node
+Q811979,architectural structure,Common_Node
+Q1836700,manufactured good,Common_Node
+Q1485500,tangible good,Common_Node
+Q56052926,building division,Common_Node
+Q38496,boxer,Class_Node
+Q64830866,physical interface,Common_Node
+Q15141646,data storage,Common_Node
+Q82794,geographic region,Common_Node
+Q1194773,projectile weapon,Common_Node
+Q2957687,meat pastry,Common_Node
+Q570116,tourist attraction,Common_Node
+Q1395006,cardboard box,Common_Node
+Q1797813,productive animal,Common_Node
+Q25324,Canidae,Common_Node
+Q210729,electrical element,Common_Node
+Q200764,bookshop,Class_Node
+Q268547,tile_roof,Class_Node
+Q1507442,human-powered transport,Common_Node
+Q7550889,combat vehicle,Common_Node
+Q39108,Saluki,Class_Node
+Q746549,dish,Common_Node
+Q595658,velocipede,Common_Node
+Q28877,goods,Common_Node
+Q13226383,facility,Common_Node
+Q11460,clothing,Common_Node
+Q2741056,cabinet,Common_Node
+Q26037047,culinary equipment,Common_Node
+Q2095,food,Common_Node
+Q1639378,social system,Common_Node
+Q729,animal,Common_Node
+Q178648,peripheral,Common_Node
+Q23038290,fossil taxon,Common_Node
+Q987767,container,Common_Node
+Q861259,painting surface,Common_Node
+Q11292,coral_reef,Class_Node
+Q35145743,human-made landform,Common_Node
+Q228039,lock,Common_Node
+Q2160801,skirt,Common_Node
+Q1333024,personal protective equipment,Common_Node
+Q27096220,natural geographic entity,Common_Node
+Q32050,precision-guided munition,Common_Node
+Q1051772,chordophone,Common_Node
+Q864377,multiset,Common_Node
+Q230823,miniskirt,Class_Node
+Q1949963,statistic,Common_Node
+Q22811462,type of manufactured good,Common_Node
+Q35145263,natural geographic object,Common_Node
+Q28803,sandwich,Common_Node
+Q185369,photocopier,Class_Node
+Q57814795,domesticated mammal,Common_Node
+Q43229,organization,Common_Node
+Q2221906,geographic location,Common_Node
+Q39367,dog breed,Common_Node
+Q15621286,intellectual work,Common_Node
+Q16869178,trousse,Common_Node
+Q57812611,mammal living in captivity,Common_Node
+Q7625012,structural building component,Common_Node
+Q19868531,formal ontology concept,Common_Node
+Q1969349,bolete,Class_Node
+Q931447,electrical load,Common_Node
+Q3578987,fire_screen,Class_Node
+Q3245975,finished good,Common_Node
+Q33972,slot,Class_Node
+Q1999851,Normative science,Common_Node
+Q3958441,economic sector,Common_Node
+Q11661,information technology,Common_Node
+Q1420806,reel,Class_Node
+Q104637332,planned process,Common_Node
+Q451967,intentional human action,Common_Node
+Q41176,building,Common_Node
+Q50414774,armor,Common_Node
+Q7239,organism,Common_Node
+Q5113,bird,Common_Node
+Q13184,berry,Common_Node
+Q3314483,fruit,Common_Node
+Q271669,landform,Common_Node
+Q31808206,covering,Common_Node
+Q16889133,class,Common_Node
+Q184872,recreation,Common_Node
+Q28845870,biological component,Common_Node
+Q35758,matter,Common_Node
+Q618123,geographical feature,Common_Node
+Q38904,miniature_poodle,Class_Node
+Q1429336,hesperidium,Common_Node
+Q207822,packaging and labeling,Common_Node
+Q55721745,sets of bells,Common_Node
+Q130901,binary relation,Common_Node
+Q2457980,clothing in ancient Rome,Common_Node
+Q605384,crate,Class_Node
+Q39253,Podenco,Common_Node
+Q58415929,spatio-temporal entity,Common_Node
+Q616601,trifle,Class_Node
+Q182731,cuirass,Class_Node
+Q22999537,vehicle family,Common_Node
+Q230629,connection,Common_Node
+Q53617489,independent continuant,Common_Node
+Q17988854,move,Common_Node
+Q80228,bottle,Common_Node
+Q80083,humanities,Common_Node
+Q517596,mechanism,Common_Node
+Q167633,clog,Class_Node
+Q20011319,plant structure,Common_Node
+Q193395,recording medium,Common_Node
+Q796635,linens,Common_Node
+Q2235308,ship type,Common_Node
+Q5936788,human-powered land vehicle,Common_Node
+Q29149,French_bulldog,Class_Node
+Q177597,naval ship,Common_Node
+Q1183543,device,Common_Node
+Q151885,concept,Common_Node
+Q58778,system,Common_Node
+Q49416455,retail location,Common_Node
+Q7978115,weapons platform,Common_Node
+Q2574750,citrus fruit,Common_Node
+Q213441,shop,Common_Node
+Q81799,fast food,Common_Node
+Q133163,percussion instrument,Common_Node
+Q692104,parallel_bars,Class_Node
+Q161928,footwear,Common_Node
+Q69016679,hospital equipment and supplies,Common_Node
+Q2091629,magnitude,Common_Node
+Q28797,applied science,Common_Node
+Q28732711,physical substance,Common_Node
+Q3114762,warship,Common_Node
+Q1629107,file,Class_Node
+Q53617407,material entity,Common_Node
+Q11862829,academic discipline,Common_Node
+Q286583,manifestation,Common_Node
+Q19462049,directly struck idiophone,Common_Node
+Q1370169,dishrag,Class_Node
+Q66394244,physical anatomical entity,Common_Node
+Q1065579,costume accessory,Common_Node
+Q23808,interface,Common_Node
+Q12766313,geomorphological unit,Common_Node
+Q34698,adjective,Common_Node
+Q11028,information,Common_Node
+Q25306,Carnivora,Common_Node
+Q9479,iPod,Class_Node
+Q1184840,military vehicle,Common_Node
+Q11016,technology,Common_Node
+Q18668582,board,Common_Node
+Q18336849,item with given name property,Common_Node
+Q729897,rock_beauty,Class_Node
+Q322481,size,Common_Node
+Q34379,musical instrument,Common_Node
+Q1454986,physical system,Common_Node
+Q18819626,connector,Common_Node
+Q26988406,Q26988406,Common_Node
+Q2374786,combination_lock,Class_Node
+Q1681365,consumables,Common_Node
+Q65037298,optical component,Common_Node
+Q24229398,agent,Common_Node
+Q61788060,human activity,Common_Node
+Q49005,curtain,Common_Node
+Q22676,shoe,Common_Node
+Q327065,display device,Common_Node
+Q16686022,natural physical object,Common_Node
+Q15197056,fleshy fruit,Common_Node
+Q628858,workplace,Common_Node
+Q27043948,material anatomical entity,Common_Node
+Q2018526,arts,Common_Node
+Q581105,consumer electronics,Common_Node
+Q203066,relation,Common_Node
+Q55610479,ecological unit,Common_Node
