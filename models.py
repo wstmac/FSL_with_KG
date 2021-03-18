@@ -7,7 +7,7 @@ import numpy as np
 from scipy.linalg import fractional_matrix_power
 
 
-class GraphConvolution():
+class GraphConvolution(nn.Module):
     def __init__(self, in_features, out_features, edges):
         super(GraphConvolution, self).__init__()
         self.in_features = in_features
@@ -21,10 +21,7 @@ class GraphConvolution():
         D = np.diag(np.sum(A_hat, axis=0)) #create Degree Matrix of A
         D_half_norm = fractional_matrix_power(D, -0.5) #calculate D to the power of -0.5
         eq = D_half_norm.dot(A_hat).dot(D_half_norm).dot(x).dot(self.weight)
-        return self.relu(eq)
-
-    def relu(self, x):
-        return np.maximum(0, x)
+        return eq
 
 
 def conv_block(in_channels: int, out_channels: int) -> nn.Module:
@@ -136,6 +133,7 @@ class Conv4Attension(nn.Module):
         x2 = self.conv2(x1) # (batch_size, 64, 21, 21): 64 is attention dimension in attention class
         x3 = self.conv3(x2) # (batch_size, 64, 10, 10): 64 is attention dimension in attention class
         x4 = self.conv4(x3) # (batch_size, 64, 5, 5): 64 is attention dimension in attention class
+        
         x4_flat = x4.view(x.size(0), -1)
         normalised_x4 = x4_flat / (x4_flat.pow(2).sum(dim=1, keepdim=True).sqrt() + EPSILON)
 
@@ -170,6 +168,21 @@ class Conv4KG(nn.Module):
             features = features / (features.pow(2).sum(dim=1, keepdim=True).sqrt() + EPSILON)
 
         return features, self.fc2(features), sp_outputs
+
+    def predict(self, x, kg_features, norm=False):
+        img_features, _, sp_outputs = self.img_encoder(x, norm=True)
+
+        predictions = []
+
+        for i, _ in enumerate(kg_features.shape[0]):
+            combined_features = torch.cat((img_features, kg_features[i]), 1)
+
+            features = self.fc1(combined_features)
+
+            if norm:
+                features = features / (features.pow(2).sum(dim=1, keepdim=True).sqrt() + EPSILON)
+
+            return features, self.fc2(features), sp_outputs
         
 
 class KG_encoder():
@@ -273,7 +286,7 @@ class Bottleneck(nn.Module):
 
 class ResNet(nn.Module):
 
-    def __init__(self, block, layers, num_classes, num_superclasses, zero_init_residual=False, remove_linear=False):
+    def __init__(self, block, layers, num_classes=1000, zero_init_residual=False):
         super(ResNet, self).__init__()
         self.inplanes = 64
         self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1,
@@ -286,14 +299,7 @@ class ResNet(nn.Module):
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
-        self.SELayer4 = SELayer(512)
-        self.SELayer3 = SELayer(256)
-        self.sp_fc = nn.Linear(512 * block.expansion, num_superclasses)
-
-        if remove_linear:
-            self.fc = None
-        else:
-            self.fc = nn.Linear(512 * block.expansion, num_classes)
+        self.fc = nn.Linear(512 * block.expansion, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -328,7 +334,7 @@ class ResNet(nn.Module):
 
         return nn.Sequential(*layers)
 
-    def forward(self, x, eval=False, norm=False):
+    def forward(self, x, norm=False):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
@@ -348,51 +354,148 @@ class ResNet(nn.Module):
         else:
             feature = x4_flat
 
-        if eval:
-            return feature
+        return feature, self.fc(feature)
+
+
+class ResNetAttention(nn.Module):
+
+    def __init__(self, block, layers, num_classes, num_superclasses, zero_init_residual=False):
+        super(ResNetAttention, self).__init__()
+        self.inplanes = 64
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1,
+                               bias=False)
+        self.bn1 = nn.BatchNorm2d(64)
+        self.relu = nn.ReLU(inplace=True)
+        self.layer1 = self._make_layer(block, 64, layers[0])
+        self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
+        self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
+        self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+
+        self.SELayer4 = SELayer(512)
+        self.SELayer3 = SELayer(256)
+        self.sp_fc = nn.Linear(512 * block.expansion, num_superclasses)
+
+        self.fc = nn.Linear(512 * block.expansion, num_classes)
+
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+
+        # Zero-initialize the last BN in each residual branch,
+        # so that the residual branch starts with zeros, and each residual block behaves like an identity.
+        # This improves the model by 0.2~0.3% according to https://arxiv.org/abs/1706.02677
+        if zero_init_residual:
+            for m in self.modules():
+                if isinstance(m, Bottleneck):
+                    nn.init.constant_(m.bn3.weight, 0)
+                elif isinstance(m, BasicBlock):
+                    nn.init.constant_(m.bn2.weight, 0)
+
+    def _make_layer(self, block, planes, blocks, stride=1):
+        downsample = None
+        if stride != 1 or self.inplanes != planes * block.expansion:
+            downsample = nn.Sequential(
+                conv1x1(self.inplanes, planes * block.expansion, stride),
+                nn.BatchNorm2d(planes * block.expansion),
+            )
+
+        layers = []
+        layers.append(block(self.inplanes, planes, stride, downsample))
+        self.inplanes = planes * block.expansion
+        for _ in range(1, blocks):
+            layers.append(block(self.inplanes, planes))
+
+        return nn.Sequential(*layers)
+
+    def forward(self, x, norm=False):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+
+        x1 = self.layer1(x) # (batch_size, 64, 56, 56)
+        x2 = self.layer2(x1) # (batch_size, 128, 28, 28)
+        x3 = self.layer3(x2) # (batch_size, 256, 14, 14)
+        x4 = self.layer4(x3) # (batch_size, 512, 7, 7)
+
+        x4 = self.avgpool(x4)
+        x4_flat = x4.view(x4.size(0), -1)
+
+        normalised_x4 = x4_flat / (x4_flat.pow(2).sum(dim=1, keepdim=True).sqrt() + EPSILON)
+
+        if norm:
+            feature = normalised_x4
         else:
-            weighted_x4, _ = self.SELayer4(x4)
-            weighted_x4_flat = weighted_x4.view(x.size(0), -1)
-            return self.fc(feature), self.sp_fc(weighted_x4_flat)
+            feature = x4_flat
 
 
-def resnet10(**kwargs):
+        weighted_x4, _ = self.SELayer4(x4)
+        weighted_x4_flat = weighted_x4.view(x.size(0), -1)
+        return feature, self.fc(feature), self.sp_fc(weighted_x4_flat)
+
+
+def resnet10(attention, **kwargs):
     """Constructs a ResNet-10 model.
     """
-    model = ResNet(BasicBlock, [1, 1, 1, 1], **kwargs)
+    if attention:
+        model = ResNet(BasicBlock, [1, 1, 1, 1], **kwargs)
+    else:
+        model = ResNetAttention(BasicBlock, [1, 1, 1, 1], **kwargs)
     return model
 
 
-def resnet18(**kwargs):
+def resnet18(attention, **kwargs):
     """Constructs a ResNet-18 model.
     """
-    model = ResNet(BasicBlock, [2, 2, 2, 2], **kwargs)
+    if attention:
+        model = ResNet(BasicBlock, [2, 2, 2, 2], **kwargs)
+    else:
+        model = ResNetAttention(BasicBlock, [2, 2, 2, 2], **kwargs)
+    # model = ResNet(BasicBlock, [2, 2, 2, 2], **kwargs)
     return model
 
 
-def resnet34(**kwargs):
+def resnet34(attention, **kwargs):
     """Constructs a ResNet-34 model.
     """
-    model = ResNet(BasicBlock, [3, 4, 6, 3], **kwargs)
+    if attention:
+        model = ResNet(BasicBlock, [3, 4, 6, 3], **kwargs)
+    else:
+        model = ResNetAttention(BasicBlock, [3, 4, 6, 3], **kwargs)
+    # model = ResNet(BasicBlock, [3, 4, 6, 3], **kwargs)
     return model
 
 
-def resnet50(**kwargs):
+def resnet50(attention, **kwargs):
     """Constructs a ResNet-50 model.
     """
-    model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
+    if attention:
+        model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
+    else:
+        model = ResNetAttention(Bottleneck, [3, 4, 6, 3], **kwargs)
+    # model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
     return model
 
 
-def resnet101(**kwargs):
+def resnet101(attention, **kwargs):
     """Constructs a ResNet-101 model.
     """
-    model = ResNet(Bottleneck, [3, 4, 23, 3], **kwargs)
+    if attention:
+        model = ResNet(Bottleneck, [3, 4, 23, 3], **kwargs)
+    else:
+        model = ResNetAttention(Bottleneck, [3, 4, 23, 3], **kwargs)
+    # model = ResNet(Bottleneck, [3, 4, 23, 3], **kwargs)
     return model
 
 
-def resnet152(**kwargs):
+def resnet152(attention, **kwargs):
     """Constructs a ResNet-152 model.
     """
-    model = ResNet(Bottleneck, [3, 8, 36, 3], **kwargs)
+    if attention:
+        model = ResNet(Bottleneck, [3, 8, 36, 3], **kwargs)
+    else:
+        model = ResNetAttention(Bottleneck, [3, 8, 36, 3], **kwargs)
     return model
