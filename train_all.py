@@ -1,10 +1,8 @@
 import time
 from torch.utils.data import DataLoader
-import logging
 from tqdm import tqdm
 import torch
 import argparse
-from torch import nn
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import MultiStepLR
 from datetime import datetime
@@ -13,7 +11,7 @@ from sentence_transformers import SentenceTransformer
 
 from datasets import MiniImageNet, SupportingSetSampler, prepare_nshot_task
 from models import Conv4Attension, KG_encoder, Conv4KG
-from utils import accuracy, compute_confidence_interval, get_splits, evaluation, AverageMeter, setup_logger, get_classFile_to_wikiID
+from utils import compute_confidence_interval, get_splits, AverageMeter, setup_logger, get_classFile_to_wikiID, argmax_evaluation
 from graph import Graph, extract_embedding_by_labels
 
 
@@ -33,6 +31,7 @@ def main():
     parser.add_argument('--model_dir', default=None, type=str)
     parser.add_argument('--checkpoint', action='store_true')
     parser.add_argument('--normalize', action='store_true')
+    parser.add_argument('--save_settings', action='store_true')
 
 
     args = parser.parse_args()
@@ -48,6 +47,7 @@ def main():
     checkpoint = args.checkpoint
     normalize = args.normalize
     scheduler_milestones = args.scheduler_milestones
+    save_settings = args.save_settings
 
     # ------------------------------- #
     # Generate folder 
@@ -64,13 +64,13 @@ def main():
     # ------------------------------- #
     train_logger = setup_logger('train_logger', f'{model_dir}/train.log')
     result_logger = setup_logger('result_logger', f'{model_dir}/result.log')
-
-    # ------------------------------- #
-    # Saving training parameters
-    # ------------------------------- #
-    result_logger.info(f'Learning rate: {learning_rate}')
-    result_logger.info(f'alpha: {alpha}')
-    result_logger.info(f'Normalize feature vector: {normalize}')
+    if save_settings:
+        # ------------------------------- #
+        # Saving training parameters
+        # ------------------------------- #
+        result_logger.info(f'Learning rate: {learning_rate}')
+        result_logger.info(f'alpha: {alpha}')
+        result_logger.info(f'Normalize feature vector: {normalize}')
 
     # ------------------------------- #
     # Load extracted knowledge graph
@@ -100,10 +100,10 @@ def main():
     support = MiniImageNet('support', base_cls, val_cls, support_cls,
             classFile_to_superclasses, eval=True)
     support_loader_1 = DataLoader(support,
-                    batch_sampler=SupportingSetSampler(support, 1, 5, 15, 10000),
+                    batch_sampler=SupportingSetSampler(support, 1, 5, 15, 100),
                     num_workers=4)
     support_loader_5 = DataLoader(support,
-                    batch_sampler=SupportingSetSampler(support, 5, 5, 15, 10000),
+                    batch_sampler=SupportingSetSampler(support, 5, 5, 15, 100),
                     num_workers=4)
 
 
@@ -129,10 +129,11 @@ def main():
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, weight_decay=1e-4, nesterov=True)
     scheduler = MultiStepLR(optimizer, milestones=scheduler_milestones, gamma=0.1)
 
-    result_logger.info('optimizer: torch.optim.SGD(model.parameters(), '
-        f'lr=learning_rate, momentum=0.9, weight_decay=1e-4, nesterov=True)')
-    result_logger.info(f'scheduler: MultiStepLR(optimizer, milestones={scheduler_milestones}, gamma=0.1)\n')
-    result_logger.info('='*40+'Results Below'+'='*40+'\n')
+    if save_settings:
+        result_logger.info('optimizer: torch.optim.SGD(model.parameters(), '
+            f'lr=learning_rate, momentum=0.9, weight_decay=1e-4, nesterov=True)')
+        result_logger.info(f'scheduler: MultiStepLR(optimizer, milestones={scheduler_milestones}, gamma=0.1)\n')
+        result_logger.info('='*40+'Results Below'+'='*40+'\n')
 
     if checkpoint:
         print('load model...')
@@ -154,12 +155,13 @@ def main():
     kg_embeddings = kg_encoder.apply_gc(desc_embeddings)
 
     classFile_to_wikiID = get_classFile_to_wikiID()
+    train_class_name_to_id = base.class_name_to_id
+    eval_class_name_to_id = support.class_name_to_id
 
     # ------------------------------- #
     # Start to train
     # ------------------------------- #
     if toTrain:
-        train_class_name_to_id = base.class_name_to_id
         for epoch in range(start_epoch, start_epoch+num_epoch):
             model.train()
             train(model, normalize, base_loader, optimizer, criterion, epoch,
@@ -175,10 +177,15 @@ def main():
                 # ------------------------------- #
                 if toEvaluate:
                     evaluate(model, normalize, epoch, support_loader_1,
-                            1, 5, 15, result_logger)
+                            1, 5, 15, device, result_logger, nodes, kg_embeddings, eval_class_name_to_id, classFile_to_wikiID)
                     evaluate(model, normalize, epoch, support_loader_5,
-                            5, 5, 15, result_logger)
-
+                            5, 5, 15, device, result_logger, nodes, kg_embeddings, eval_class_name_to_id, classFile_to_wikiID)
+    else:
+        if toEvaluate:
+            evaluate(model, normalize, start_epoch-1, support_loader_1,
+                    1, 5, 15, device, result_logger, nodes, kg_embeddings, eval_class_name_to_id, classFile_to_wikiID)
+            evaluate(model, normalize, start_epoch-1, support_loader_5,
+                    5, 5, 15, device, result_logger, nodes, kg_embeddings, eval_class_name_to_id, classFile_to_wikiID)
 
 
 def train(model, normalize, base_loader, optimizer, criterion, epoch,
@@ -217,13 +224,21 @@ def train(model, normalize, base_loader, optimizer, criterion, epoch,
             logger.info(f'[{epoch:3d}/{total_epoch}|{i+1:3d}, '
                 f'{len(base_loader)}] batch_time: {batch_time.avg:.2f} '
                 f'data_time: {data_time.avg:.2f} loss: {losses.avg:.3f}')
+            # if save_to_log:
+            #     logger.info(f'[{epoch:3d}/{total_epoch}|{i+1:3d}, '
+            #         f'{len(base_loader)}] batch_time: {batch_time.avg:.2f} '
+            #         f'data_time: {data_time.avg:.2f} loss: {losses.avg:.3f}')
+            # else:
+            #     print(f'[{epoch:3d}/{total_epoch}|{i+1:3d}, '
+            #         f'{len(base_loader)}] batch_time: {batch_time.avg:.2f} '
+            #         f'data_time: {data_time.avg:.2f} loss: {losses.avg:.3f}')     
 
             batch_time.reset() 
             data_time.reset() 
             losses.reset() 
 
 
-def evaluate(model, normalize, epoch, support_loader, n, k, q, logger):
+def evaluate(model, normalize, epoch, support_loader, n, k, q, device, logger, nodes, kg_embeddings, class_name_to_id, classFile_to_wikiID):
     accs_l2 = []
     accs_cosine = []
     model.eval()
@@ -231,18 +246,40 @@ def evaluate(model, normalize, epoch, support_loader, n, k, q, logger):
     with torch.no_grad():
         for data in tqdm(support_loader):
             imgs, labels  = prepare_nshot_task(n, k, q, data)
-            outputs = model(imgs, eval=True, norm=normalize)
+            # import ipdb; ipdb.set_trace()
+            # get corresponding kg embedding by labels
+            support_corr_embeddings = extract_embedding_by_labels(nodes, kg_embeddings, data[1][:n*k], class_name_to_id, classFile_to_wikiID)
+            support_corr_embeddings = support_corr_embeddings.to(device)
 
-            acc_l2 = evaluation(outputs, labels, n, k, q, 'l2')
-            acc_cosine = evaluation(outputs, labels, n, k, q, 'cosine')
+            support_outputs, _, _ = model(imgs[:n*k], support_corr_embeddings, norm=normalize)
+
+            query_outputs = []
+
+            for i in range(k):
+                corr_index = (q*k)*[data[1][0+i*n]]
+                corr_embeddings = extract_embedding_by_labels(nodes, kg_embeddings, corr_index, class_name_to_id, classFile_to_wikiID)
+                corr_embeddings = corr_embeddings.to(device)
+                query_output, _, _ = model(imgs[n*k:], corr_embeddings, norm=normalize)
+                query_outputs.append(query_output)
+
+            # import ipdb; ipdb.set_trace()
+            acc_l2 = argmax_evaluation(support_outputs, query_outputs, labels, n, k, q, 'l2')
+            acc_cosine = argmax_evaluation(support_outputs, query_outputs, labels, n, k, q, 'cosine')
             accs_l2.append(acc_l2)
             accs_cosine.append(acc_cosine)
     
     m_l2, pm_l2 = compute_confidence_interval(accs_l2)
     m_cosine, pm_cosine = compute_confidence_interval(accs_cosine)
     # file_writer.write(f'{epoch:3d}.pth {n}-shot\tAccuracy_l2: {m_l2:.2f}+/-{pm_l2:.2f} Accuracy_cosine: {m_cosine:.2f}+/-{pm_cosine:.2f}\n')
+    
     logger.info(f'{epoch:3d}.pth: {n}-shot \t l2: {m_l2:.2f}+/-{pm_l2:.2f} \t '
-                f'cosine: {m_cosine:.2f}+/-{pm_cosine:.2f}')
+            f'cosine: {m_cosine:.2f}+/-{pm_cosine:.2f}')
+    # if save_to_log:
+    #     logger.info(f'{epoch:3d}.pth: {n}-shot \t l2: {m_l2:.2f}+/-{pm_l2:.2f} \t '
+    #                 f'cosine: {m_cosine:.2f}+/-{pm_cosine:.2f}')
+    # else:
+    #     print(f'{epoch:3d}.pth: {n}-shot \t l2: {m_l2:.2f}+/-{pm_l2:.2f} \t '
+    #             f'cosine: {m_cosine:.2f}+/-{pm_cosine:.2f}')
 
 
 def loss_fn(alpha):
