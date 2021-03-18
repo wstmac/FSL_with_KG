@@ -59,9 +59,9 @@ def main():
     # Generate folder 
     # ------------------------------- #
     if checkpoint:
-        model_dir = f'./models/{args.model_dir}'
+        model_dir = f'./training_models/{args.model_dir}'
     else:
-        model_dir = f'./models/{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
+        model_dir = f'./training_models/{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
         os.makedirs(model_dir)
 
     
