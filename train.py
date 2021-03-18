@@ -114,16 +114,10 @@ def main():
             model = models.Conv4Classifier(len(base_cls))
 
     if model_arch == 'resnet10':
-        if attention:
-            model = models.resnet10(attention, len(base_cls), len(superclassID_to_wikiID))
-        else:
-            model = models.resnet10(attention, len(base_cls))
+        model = models.resnet10(attention, len(base_cls), len(superclassID_to_wikiID))
 
     if model_arch == 'resnet50':
-        if attention:
-            model = models.resnet50(attention, len(base_cls), len(superclassID_to_wikiID))
-        else:
-            model = models.resnet50(attention, len(base_cls))
+        model = models.resnet50(attention, len(base_cls), len(superclassID_to_wikiID))
 
     model.to(device)
 

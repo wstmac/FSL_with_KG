@@ -128,16 +128,10 @@ def main():
             img_encoder = models.Conv4Classifier(len(base_cls))
 
     if model_arch == 'resnet10':
-        if attention:
-            img_encoder = models.resnet10(attention, len(base_cls), len(superclassID_to_wikiID))
-        else:
-            img_encoder = models.resnet10(attention, len(base_cls))
+        img_encoder = models.resnet10(attention, len(base_cls), len(superclassID_to_wikiID))
 
     if model_arch == 'resnet50':
-        if attention:
-            img_encoder = models.resnet50(attention, len(base_cls), len(superclassID_to_wikiID))
-        else:
-            img_encoder = models.resnet50(attention, len(base_cls))
+        img_encoder = models.resnet50(attention, len(base_cls), len(superclassID_to_wikiID))
 
 
     # knowledge graph encoder
