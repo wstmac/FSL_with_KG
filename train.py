@@ -68,6 +68,7 @@ def main():
     # ------------------------------- #
     train_logger = setup_logger('train_logger', f'{model_dir}/train.log')
     result_logger = setup_logger('result_logger', f'{model_dir}/result.log')
+    # overview_logger = setup_logger('overview_logger', f'./overview_result.log')
     if save_settings:
         # ------------------------------- #
         # Saving training parameters
@@ -125,9 +126,9 @@ def main():
 
     if save_settings:
         result_logger.info('optimizer: torch.optim.SGD(model.parameters(), '
-            f'lr=learning_rate, momentum=0.9, weight_decay=1e-4, nesterov=True)')
+            f'lr={learning_rate}, momentum=0.9, weight_decay=1e-4, nesterov=True)')
         result_logger.info(f'scheduler: MultiStepLR(optimizer, milestones={scheduler_milestones}, gamma=0.1)\n')
-        result_logger.info('='*40+'Results Below'+'='*40+'\n')
+        # result_logger.info('='*40+'Results Below'+'='*40+'\n')
 
     if checkpoint:
         print('load model...')
@@ -226,6 +227,7 @@ def evaluate(model, normalize, epoch, support_loader, n, k, q, device, logger):
     # file_writer.write(f'{epoch:3d}.pth {n}-shot\tAccuracy_l2: {m_l2:.2f}+/-{pm_l2:.2f} Accuracy_cosine: {m_cosine:.2f}+/-{pm_cosine:.2f}\n')
     logger.info(f'{epoch:3d}.pth: {n}-shot \t l2: {m_l2:.2f}+/-{pm_l2:.2f} \t '
                 f'cosine: {m_cosine:.2f}+/-{pm_cosine:.2f}')
+    logger.info('='*140)
 
 
 def loss_fn(alpha):
