@@ -437,65 +437,47 @@ class ResNetAttention(nn.Module):
         return feature, self.fc(feature), self.sp_fc(weighted_x4_flat)
 
 
-def resnet10(attention, num_classes, num_superclasses):
+def resnet10(num_classes, num_superclasses):
     """Constructs a ResNet-10 model.
     """
-    if not attention:
-        model = ResNet(BasicBlock, [1, 1, 1, 1], num_classes)
-    else:
-        model = ResNetAttention(BasicBlock, [1, 1, 1, 1], num_classes, num_superclasses)
+    model = ResNetAttention(BasicBlock, [1, 1, 1, 1], num_classes, num_superclasses)
     return model
 
 
-def resnet18(attention, num_classes, num_superclasses):
+def resnet18(num_classes, num_superclasses):
     """Constructs a ResNet-18 model.
     """
-    if not attention:
-        model = ResNet(BasicBlock, [2, 2, 2, 2], num_classes)
-    else:
-        model = ResNetAttention(BasicBlock, [2, 2, 2, 2], num_classes, num_superclasses)
+    model = ResNetAttention(BasicBlock, [2, 2, 2, 2], num_classes, num_superclasses)
     # model = ResNet(BasicBlock, [2, 2, 2, 2], **kwargs)
     return model
 
 
-def resnet34(attention, num_classes, num_superclasses):
+def resnet34(num_classes, num_superclasses):
     """Constructs a ResNet-34 model.
     """
-    if not attention:
-        model = ResNet(BasicBlock, [3, 4, 6, 3], num_classes)
-    else:
-        model = ResNetAttention(BasicBlock, [3, 4, 6, 3], num_classes, num_superclasses)
+    model = ResNetAttention(BasicBlock, [3, 4, 6, 3], num_classes, num_superclasses)
     # model = ResNet(BasicBlock, [3, 4, 6, 3], **kwargs)
     return model
 
 
-def resnet50(attention, num_classes, num_superclasses):
+def resnet50(num_classes, num_superclasses):
     """Constructs a ResNet-50 model.
     """
-    if not attention:
-        model = ResNet(Bottleneck, [3, 4, 6, 3], num_classes)
-    else:
-        model = ResNetAttention(Bottleneck, [3, 4, 6, 3], num_classes, num_superclasses)
+    model = ResNetAttention(Bottleneck, [3, 4, 6, 3], num_classes, num_superclasses)
     # model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
     return model
 
 
-def resnet101(attention, num_classes, num_superclasses):
+def resnet101(num_classes, num_superclasses):
     """Constructs a ResNet-101 model.
     """
-    if not attention:
-        model = ResNet(Bottleneck, [3, 4, 23, 3], num_classes)
-    else:
-        model = ResNetAttention(Bottleneck, [3, 4, 23, 3], num_classes, num_superclasses)
+    model = ResNetAttention(Bottleneck, [3, 4, 23, 3], num_classes, num_superclasses)
     # model = ResNet(Bottleneck, [3, 4, 23, 3], **kwargs)
     return model
 
 
-def resnet152(attention, num_classes, num_superclasses):
+def resnet152(num_classes, num_superclasses):
     """Constructs a ResNet-152 model.
     """
-    if not attention:
-        model = ResNet(Bottleneck, [3, 8, 36, 3], num_classes)
-    else:
-        model = ResNetAttention(Bottleneck, [3, 8, 36, 3], num_classes, num_superclasses)
+    model = ResNetAttention(Bottleneck, [3, 8, 36, 3], num_classes, num_superclasses)
     return model

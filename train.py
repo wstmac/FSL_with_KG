@@ -18,7 +18,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--gpu', default=0, type=int)
     parser.add_argument('--model_arch', default='conv4', choices=['conv4', 'resnet10', 'resnet50'], type=str)
-    parser.add_argument('--attention', action='store_true')
+    # parser.add_argument('--attention', action='store_true')
     parser.add_argument('--start_epoch', default=1, type=int)
     parser.add_argument('--num_epoch', default=90, type=int)
     parser.add_argument('--learning_rate', default=0.01, type=float)
@@ -39,7 +39,7 @@ def main():
 
     device = torch.device(f'cuda:{args.gpu}')
     model_arch = args.model_arch
-    attention = args.attention
+    # attention = args.attention
     learning_rate = args.learning_rate
     alpha = args.alpha
     start_epoch = args.start_epoch
@@ -72,7 +72,7 @@ def main():
         # ------------------------------- #
         # Saving training parameters
         # ------------------------------- #
-        result_logger.info(f'Model: {model_arch}\tAttention: {attention}')
+        result_logger.info(f'Model: {model_arch}')
         result_logger.info(f'Learning rate: {learning_rate}')
         result_logger.info(f'alpha: {alpha}')
         result_logger.info(f'Normalize feature vector: {normalize}')
@@ -108,16 +108,13 @@ def main():
     # Model #
     #########
     if model_arch == 'conv4':
-        if attention:
-            model = models.Conv4Attension(len(base_cls), len(superclassID_to_wikiID))
-        else:
-            model = models.Conv4Classifier(len(base_cls))
+        model = models.Conv4Attension(len(base_cls), len(superclassID_to_wikiID))
 
     if model_arch == 'resnet10':
-        model = models.resnet10(attention, len(base_cls), len(superclassID_to_wikiID))
+        model = models.resnet10(len(base_cls), len(superclassID_to_wikiID))
 
     if model_arch == 'resnet50':
-        model = models.resnet50(attention, len(base_cls), len(superclassID_to_wikiID))
+        model = models.resnet50(len(base_cls), len(superclassID_to_wikiID))
 
     model.to(device)
 
