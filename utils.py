@@ -124,6 +124,24 @@ def evaluation(embeddings, labels, n, k, q, distance_metric):
     return accs
 
 
+def argmax_evaluation(support, queries, labels, n, k, q, distance_metric):
+    # import ipdb; ipdb.set_trace()
+    centroids = compute_centroid(support, k, n)
+
+    distances = []
+    for i, query in enumerate(queries):
+        # Calculate squared distances between all queries and all prototypes
+        # Output should have shape (q_queries * k_way, k_way) = (num_queries, k_way)
+        distance = pairwise_distances(query, centroids[i].unsqueeze(0), distance_metric)
+        distances.append(distance)
+
+    # distances = torch.cat(distances, 0)
+
+    accs = accuracy(-torch.cat(distances, 1), labels)
+
+    return accs
+
+
 def compute_centroid(support, k, n):
     class_centroids = support.reshape(k, n, -1).mean(dim=1)
     return class_centroids
