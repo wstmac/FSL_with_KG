@@ -252,7 +252,7 @@ def train(model, normalize, base_loader, optimizer, criterion, epoch,
             losses.reset() 
 
 
-def evaluate(model, normalize, epoch, support_loader, n, k, q, device, logger, overview_logger, nodes, kg_embeddings, class_name_to_id, classFile_to_wikiID):
+def evaluate(model, normalize, epoch, support_loader, n, k, q, device, logger, nodes, kg_embeddings, class_name_to_id, classFile_to_wikiID):
     accs_l2 = []
     accs_cosine = []
     model.eval()
@@ -290,9 +290,9 @@ def evaluate(model, normalize, epoch, support_loader, n, k, q, device, logger, o
             f'cosine: {m_cosine:.2f}+/-{pm_cosine:.2f}')
     logger.info('='*140)
 
-    overview_logger.info(f'{epoch:3d}.pth: {n}-shot \t l2: {m_l2:.2f}+/-{pm_l2:.2f} \t '
-                f'cosine: {m_cosine:.2f}+/-{pm_cosine:.2f}')
-    overview_logger.info('='*140)
+    # overview_logger.info(f'{epoch:3d}.pth: {n}-shot \t l2: {m_l2:.2f}+/-{pm_l2:.2f} \t '
+    #             f'cosine: {m_cosine:.2f}+/-{pm_cosine:.2f}')
+    # overview_logger.info('='*140)
     # if save_to_log:
     #     logger.info(f'{epoch:3d}.pth: {n}-shot \t l2: {m_l2:.2f}+/-{pm_l2:.2f} \t '
     #                 f'cosine: {m_cosine:.2f}+/-{pm_cosine:.2f}')
