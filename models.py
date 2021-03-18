@@ -150,9 +150,9 @@ class Conv4Attension(nn.Module):
         return feature, self.fc1(feature), self.sp_fc(weighted_x4_flat)
 
 
-class Conv4KG(nn.Module):
+class STKH(nn.Module):
     def __init__(self, img_encoder, cat_feature, final_feature, k_way):
-        super(Conv4KG, self).__init__()
+        super(STKH, self).__init__()
         self.img_encoder = img_encoder
 
         self.fc1 = nn.Linear(cat_feature, final_feature)

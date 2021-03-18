@@ -1,23 +1,24 @@
 import time
 from torch.utils.data import DataLoader
-import logging
 from tqdm import tqdm
 import torch
 import argparse
-from torch import nn
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import MultiStepLR
 from datetime import datetime
 import os
 
 from datasets import MiniImageNet, SupportingSetSampler, prepare_nshot_task
-from models import Conv4Attension
-from utils import accuracy, compute_confidence_interval, get_splits, evaluation, AverageMeter, setup_logger
+import models
+from utils import compute_confidence_interval, get_splits, evaluation, AverageMeter, setup_logger
 from graph import Graph
 
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--gpu', default=0, type=int)
+    parser.add_argument('--model_arch', default='conv4', choices=['conv4', 'resnet10', 'resnet50'], type=str)
+    parser.add_argument('--attention', action='store_true')
     parser.add_argument('--start_epoch', default=1, type=int)
     parser.add_argument('--num_epoch', default=90, type=int)
     parser.add_argument('--learning_rate', default=0.01, type=float)
@@ -25,15 +26,20 @@ def main():
     parser.add_argument('--alpha', default=0.5, type=float)
     parser.add_argument('--model_saving_rate', default=30, type=int)
     parser.add_argument('--train', action='store_true')
+    parser.add_argument('--support_groups', default=10000, type=int)
     parser.add_argument('--evaluate', action='store_true')
     parser.add_argument('--model_dir', default=None, type=str)
     parser.add_argument('--checkpoint', action='store_true')
     parser.add_argument('--normalize', action='store_true')
+    parser.add_argument('--save_settings', action='store_true')
+
 
 
     args = parser.parse_args()
 
-    device = torch.device('cuda')
+    device = torch.device(f'cuda:{args.gpu}')
+    model_arch = args.model_arch
+    attention = args.attention
     learning_rate = args.learning_rate
     alpha = args.alpha
     start_epoch = args.start_epoch
@@ -44,6 +50,8 @@ def main():
     checkpoint = args.checkpoint
     normalize = args.normalize
     scheduler_milestones = args.scheduler_milestones
+    save_settings = args.save_settings
+    support_groups = args.support_groups
 
     # ------------------------------- #
     # Generate folder 
@@ -60,14 +68,14 @@ def main():
     # ------------------------------- #
     train_logger = setup_logger('train_logger', f'{model_dir}/train.log')
     result_logger = setup_logger('result_logger', f'{model_dir}/result.log')
-
-    # ------------------------------- #
-    # Saving training parameters
-    # ------------------------------- #
-    result_logger.info(f'Learning rate: {learning_rate}')
-    result_logger.info(f'alpha: {alpha}')
-    result_logger.info(f'Normalize feature vector: {normalize}')
-
+    if save_settings:
+        # ------------------------------- #
+        # Saving training parameters
+        # ------------------------------- #
+        result_logger.info(f'Model: {model_arch}\tAttention: {attention}')
+        result_logger.info(f'Learning rate: {learning_rate}')
+        result_logger.info(f'alpha: {alpha}')
+        result_logger.info(f'Normalize feature vector: {normalize}')
     # ------------------------------- #
     # Load extracted knowledge graph
     # ------------------------------- #
@@ -89,17 +97,34 @@ def main():
     support = MiniImageNet('support', base_cls, val_cls, support_cls,
             classFile_to_superclasses, eval=True)
     support_loader_1 = DataLoader(support,
-                    batch_sampler=SupportingSetSampler(support, 1, 5, 15, 10000),
+                    batch_sampler=SupportingSetSampler(support, 1, 5, 15, support_groups),
                     num_workers=4)
     support_loader_5 = DataLoader(support,
-                    batch_sampler=SupportingSetSampler(support, 5, 5, 15, 10000),
+                    batch_sampler=SupportingSetSampler(support, 5, 5, 15, support_groups),
                     num_workers=4)
 
 
     #########
     # Model #
     #########
-    model = Conv4Attension(len(base_cls), len(superclassID_to_wikiID))
+    if model_arch == 'conv4':
+        if attention:
+            model = models.Conv4Attension(len(base_cls), len(superclassID_to_wikiID))
+        else:
+            model = models.Conv4Classifier(len(base_cls))
+
+    if model_arch == 'resnet10':
+        if attention:
+            model = models.resnet10(attention, len(base_cls), len(superclassID_to_wikiID))
+        else:
+            model = models.resnet10(attention, len(base_cls))
+
+    if model_arch == 'resnet50':
+        if attention:
+            model = models.resnet50(attention, len(base_cls), len(superclassID_to_wikiID))
+        else:
+            model = models.resnet50(attention, len(base_cls))
+
     model.to(device)
 
     # loss function and optimizer
@@ -107,10 +132,11 @@ def main():
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, weight_decay=1e-4, nesterov=True)
     scheduler = MultiStepLR(optimizer, milestones=scheduler_milestones, gamma=0.1)
 
-    result_logger.info('optimizer: torch.optim.SGD(model.parameters(), '
-        f'lr=learning_rate, momentum=0.9, weight_decay=1e-4, nesterov=True)')
-    result_logger.info(f'scheduler: MultiStepLR(optimizer, milestones={scheduler_milestones}, gamma=0.1)\n')
-    result_logger.info('='*40+'Results Below'+'='*40+'\n')
+    if save_settings:
+        result_logger.info('optimizer: torch.optim.SGD(model.parameters(), '
+            f'lr=learning_rate, momentum=0.9, weight_decay=1e-4, nesterov=True)')
+        result_logger.info(f'scheduler: MultiStepLR(optimizer, milestones={scheduler_milestones}, gamma=0.1)\n')
+        result_logger.info('='*40+'Results Below'+'='*40+'\n')
 
     if checkpoint:
         print('load model...')
@@ -143,7 +169,12 @@ def main():
                             1, 5, 15, result_logger)
                     evaluate(model, normalize, epoch, support_loader_5,
                             5, 5, 15, result_logger)
-
+    else:
+        if toEvaluate:
+            evaluate(model, normalize, start_epoch-1, support_loader_1,
+                    1, 5, 15, result_logger)
+            evaluate(model, normalize, start_epoch-1, support_loader_5,
+                    5, 5, 15, result_logger)
 
 
 def train(model, normalize, base_loader, optimizer, criterion, epoch,
@@ -182,32 +213,6 @@ def train(model, normalize, base_loader, optimizer, criterion, epoch,
             batch_time.reset() 
             data_time.reset() 
             losses.reset() 
-
-
-# def validate(model, val_loader, criterion, epoch, device):
-#     losses = AverageMeter()
-#     accs = AverageMeter()
-#     model.eval()
-
-#     with torch.no_grad():
-#         for i, (imgs, labels, sp_labels) in enumerate(val_loader):
-#             imgs = imgs.to(device)
-#             labels = labels.to(device)
-#             sp_labels = sp_labels.to(device)
-
-#             class_outputs, sp_outputs = model(imgs)
-#             loss = criterion(class_outputs, sp_outputs, labels, sp_labels)
-
-#             acc = accuracy(class_outputs, labels)
-
-#             accs.update(acc)
-#             losses.update(loss)
-
-
-#         logging.info(f'Evaluation on epoch {epoch+1}: loss: {losses.avg:.3f} acc: {accs.avg:.3f}')
-#         print(f'Evaluation on epoch {epoch+1}: loss: {losses.avg:.3f} acc: {accs.avg:.3f}')
-
-#     return accs.avg
 
 
 def evaluate(model, normalize, epoch, support_loader, n, k, q, logger):

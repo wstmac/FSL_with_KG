@@ -10,7 +10,7 @@ import os
 from sentence_transformers import SentenceTransformer
 
 from datasets import MiniImageNet, SupportingSetSampler, prepare_nshot_task
-from models import Conv4Attension, KG_encoder, Conv4KG
+import models
 from utils import compute_confidence_interval, get_splits, AverageMeter, setup_logger, get_classFile_to_wikiID, argmax_evaluation
 from graph import Graph, extract_embedding_by_labels
 
@@ -20,6 +20,8 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--gpu', default=0, type=int)
+    parser.add_argument('--model_arch', default='conv4', choices=['conv4', 'resnet10', 'resnet50'], type=str)
+    parser.add_argument('--attention', action='store_true')
     parser.add_argument('--start_epoch', default=1, type=int)
     parser.add_argument('--num_epoch', default=90, type=int)
     parser.add_argument('--learning_rate', default=0.01, type=float)
@@ -27,6 +29,7 @@ def main():
     parser.add_argument('--alpha', default=0.5, type=float)
     parser.add_argument('--model_saving_rate', default=30, type=int)
     parser.add_argument('--train', action='store_true')
+    parser.add_argument('--support_groups', default=10000, type=int)
     parser.add_argument('--evaluate', action='store_true')
     parser.add_argument('--model_dir', default=None, type=str)
     parser.add_argument('--checkpoint', action='store_true')
@@ -37,6 +40,8 @@ def main():
     args = parser.parse_args()
 
     device = torch.device(f'cuda:{args.gpu}')
+    model_arch = args.model_arch
+    attention = args.attention
     learning_rate = args.learning_rate
     alpha = args.alpha
     start_epoch = args.start_epoch
@@ -48,6 +53,7 @@ def main():
     normalize = args.normalize
     scheduler_milestones = args.scheduler_milestones
     save_settings = args.save_settings
+    support_groups = args.support_groups
 
     # ------------------------------- #
     # Generate folder 
@@ -68,6 +74,7 @@ def main():
         # ------------------------------- #
         # Saving training parameters
         # ------------------------------- #
+        result_logger.info(f'Model: {model_arch}\tAttention: {attention}')
         result_logger.info(f'Learning rate: {learning_rate}')
         result_logger.info(f'alpha: {alpha}')
         result_logger.info(f'Normalize feature vector: {normalize}')
@@ -100,10 +107,10 @@ def main():
     support = MiniImageNet('support', base_cls, val_cls, support_cls,
             classFile_to_superclasses, eval=True)
     support_loader_1 = DataLoader(support,
-                    batch_sampler=SupportingSetSampler(support, 1, 5, 15, 100),
+                    batch_sampler=SupportingSetSampler(support, 1, 5, 15, support_groups),
                     num_workers=4)
     support_loader_5 = DataLoader(support,
-                    batch_sampler=SupportingSetSampler(support, 5, 5, 15, 100),
+                    batch_sampler=SupportingSetSampler(support, 5, 5, 15, support_groups),
                     num_workers=4)
 
 
@@ -114,14 +121,30 @@ def main():
     sentence_transformer = SentenceTransformer('paraphrase-distilroberta-base-v1')
 
     # image encoder
-    img_encoder = Conv4Attension(len(base_cls), len(superclassID_to_wikiID))
-    img_encoder.to(device)
+    if model_arch == 'conv4':
+        if attention:
+            img_encoder = models.Conv4Attension(len(base_cls), len(superclassID_to_wikiID))
+        else:
+            img_encoder = models.Conv4Classifier(len(base_cls))
+
+    if model_arch == 'resnet10':
+        if attention:
+            img_encoder = models.resnet10(attention, len(base_cls), len(superclassID_to_wikiID))
+        else:
+            img_encoder = models.resnet10(attention, len(base_cls))
+
+    if model_arch == 'resnet50':
+        if attention:
+            img_encoder = models.resnet50(attention, len(base_cls), len(superclassID_to_wikiID))
+        else:
+            img_encoder = models.resnet50(attention, len(base_cls))
+
 
     # knowledge graph encoder
-    kg_encoder = KG_encoder(layer, layer_nums, edges)
+    kg_encoder = models.KG_encoder(layer, layer_nums, edges)
 
     # total model
-    model = Conv4KG(img_encoder, cat_feature, final_feature, len(base_cls))
+    model = models.STKH(img_encoder, cat_feature, final_feature, len(base_cls))
     model.to(device)
 
     # loss function and optimizer
