@@ -157,15 +157,15 @@ def main():
                 # ------------------------------- #
                 if toEvaluate:
                     evaluate(model, normalize, epoch, support_loader_1,
-                            1, 5, 15, result_logger)
+                            1, 5, 15, device, result_logger)
                     evaluate(model, normalize, epoch, support_loader_5,
-                            5, 5, 15, result_logger)
+                            5, 5, 15, device, result_logger)
     else:
         if toEvaluate:
             evaluate(model, normalize, start_epoch-1, support_loader_1,
-                    1, 5, 15, result_logger)
+                    1, 5, 15, device, result_logger)
             evaluate(model, normalize, start_epoch-1, support_loader_5,
-                    5, 5, 15, result_logger)
+                    5, 5, 15, device, result_logger)
 
 
 def train(model, normalize, base_loader, optimizer, criterion, epoch,
