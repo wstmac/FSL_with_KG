@@ -20,7 +20,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--gpu', default=0, type=int)
-    parser.add_argument('--model_arch', default='conv4', choices=['conv4', 'resnet10', 'resnet50'], type=str)
+    parser.add_argument('--model_arch', default='conv4', choices=['conv4', 'resnet10', 'resnet18'], type=str)
     # parser.add_argument('--attention', action='store_true')
     parser.add_argument('--start_epoch', default=1, type=int)
     parser.add_argument('--num_epoch', default=90, type=int)
@@ -127,8 +127,8 @@ def main():
     if model_arch == 'resnet10':
         img_encoder = models.resnet10(len(base_cls), len(superclassID_to_wikiID))
 
-    if model_arch == 'resnet50':
-        img_encoder = models.resnet50(len(base_cls), len(superclassID_to_wikiID))
+    if model_arch == 'resnet18':
+        img_encoder = models.resnet18(len(base_cls), len(superclassID_to_wikiID))
 
 
     # knowledge graph encoder
