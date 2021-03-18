@@ -259,7 +259,7 @@ def evaluate(model, normalize, epoch, support_loader, n, k, q, device, logger, n
 
     with torch.no_grad():
         for data in tqdm(support_loader):
-            imgs, labels  = prepare_nshot_task(n, k, q, data)
+            imgs, labels  = prepare_nshot_task(n, k, q, data, device)
             # import ipdb; ipdb.set_trace()
             # get corresponding kg embedding by labels
             support_corr_embeddings = extract_embedding_by_labels(nodes, kg_embeddings, data[1][:n*k], class_name_to_id, classFile_to_wikiID)

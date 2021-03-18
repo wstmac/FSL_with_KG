@@ -174,7 +174,7 @@ class SupportingSetSampler(Sampler):
             yield np.stack(batch)
 
 
-def prepare_nshot_task(n: int, k: int, q: int, data):
+def prepare_nshot_task(n: int, k: int, q: int, data, device):
     """Typical n-shot task preprocessing.
 
     # Arguments
@@ -185,7 +185,10 @@ def prepare_nshot_task(n: int, k: int, q: int, data):
     # Returns
         prepare_nshot_task_: A Callable that processes a few shot tasks with specified n, k and q
     """
-    x = data[0].cuda()
+    x = data[0]
     # Create dummy 0-(num_classes - 1) label
-    y = torch.arange(0, k, 1 / q).long().cuda()
+    y = torch.arange(0, k, 1 / q).long()
+    
+    x = x.to(device)
+    y = y.to(device)
     return x, y

@@ -206,14 +206,14 @@ def train(model, normalize, base_loader, optimizer, criterion, epoch,
             losses.reset() 
 
 
-def evaluate(model, normalize, epoch, support_loader, n, k, q, logger):
+def evaluate(model, normalize, epoch, support_loader, n, k, q, device, logger):
     accs_l2 = []
     accs_cosine = []
     model.eval()
 
     with torch.no_grad():
         for data in tqdm(support_loader):
-            imgs, labels  = prepare_nshot_task(n, k, q, data)
+            imgs, labels  = prepare_nshot_task(n, k, q, data, device)
             _, outputs, _ = model(imgs, norm=normalize)
 
             acc_l2 = evaluation(outputs, labels, n, k, q, 'l2')
