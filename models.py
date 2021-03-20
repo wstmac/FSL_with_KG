@@ -374,7 +374,7 @@ class ResNetAttention(nn.Module):
 
         self.SELayer4 = SELayer(512)
         self.SELayer3 = SELayer(256)
-        self.sp_fc = nn.Linear(512 * block.expansion, num_superclasses)
+        self.sp_fc = nn.Linear(256 * block.expansion, num_superclasses)
 
         self.fc = nn.Linear(512 * block.expansion, num_classes)
 
@@ -432,9 +432,9 @@ class ResNetAttention(nn.Module):
             feature = x4_flat
 
 
-        weighted_x, _ = self.SELayer3(x4)
+        weighted_x, _ = self.SELayer3(self.avgpool(x3))
         weighted_x_flat = weighted_x.view(x.size(0), -1)
-
+        import ipdb; ipdb.set_trace()
         # weighted_x4, _ = self.SELayer4(x4)
         # weighted_x4_flat = weighted_x4.view(x.size(0), -1)
 
