@@ -32,7 +32,7 @@ def main():
     parser.add_argument('--checkpoint', action='store_true')
     parser.add_argument('--normalize', action='store_true')
     parser.add_argument('--save_settings', action='store_true')
-
+    parser.add_argument('--layer', default=4, type=int)
 
 
     args = parser.parse_args()
@@ -74,6 +74,7 @@ def main():
         # Saving training parameters
         # ------------------------------- #
         result_logger.info(f'Model: {model_arch}')
+        result_logger.info(f'Layer: {args.layer}')
         result_logger.info(f'Learning rate: {learning_rate}')
         result_logger.info(f'alpha: {alpha}')
         result_logger.info(f'Normalize feature vector: {normalize}')

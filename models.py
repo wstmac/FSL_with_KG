@@ -432,9 +432,13 @@ class ResNetAttention(nn.Module):
             feature = x4_flat
 
 
-        weighted_x4, _ = self.SELayer4(x4)
-        weighted_x4_flat = weighted_x4.view(x.size(0), -1)
-        return feature, self.fc(feature), self.sp_fc(weighted_x4_flat)
+        weighted_x, _ = self.SELayer3(x4)
+        weighted_x_flat = weighted_x.view(x.size(0), -1)
+
+        # weighted_x4, _ = self.SELayer4(x4)
+        # weighted_x4_flat = weighted_x4.view(x.size(0), -1)
+
+        return feature, self.fc(feature), self.sp_fc(weighted_x_flat)
 
 
 def resnet10(num_classes, num_superclasses):
