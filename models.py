@@ -434,7 +434,7 @@ class ResNetAttention(nn.Module):
 
         weighted_x, _ = self.SELayer3(self.avgpool(x3))
         weighted_x_flat = weighted_x.view(x.size(0), -1)
-        import ipdb; ipdb.set_trace()
+        # import ipdb; ipdb.set_trace()
         # weighted_x4, _ = self.SELayer4(x4)
         # weighted_x4_flat = weighted_x4.view(x.size(0), -1)
 
