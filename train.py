@@ -28,6 +28,7 @@ def main():
     parser.add_argument('--train', action='store_true')
     parser.add_argument('--support_groups', default=10000, type=int)
     parser.add_argument('--evaluate', action='store_true')
+    parser.add_argument('--evaluation_rate', default=10, type=int)
     parser.add_argument('--model_dir', default=None, type=str)
     parser.add_argument('--checkpoint', action='store_true')
     parser.add_argument('--normalize', action='store_true')
@@ -47,6 +48,7 @@ def main():
     model_saving_rate = args.model_saving_rate
     toTrain = args.train
     toEvaluate = args.evaluate
+    evaluation_rate = args.evaluation_rate
     checkpoint = args.checkpoint
     normalize = args.normalize
     scheduler_milestones = args.scheduler_milestones
@@ -154,10 +156,11 @@ def main():
             if epoch % model_saving_rate == 0:
                 torch.save(model.state_dict(), f'{model_dir}/{epoch}.pth')
 
-                # ------------------------------- #
-                # Evaluate current model
-                # ------------------------------- #
-                if toEvaluate:
+            # ------------------------------- #
+            # Evaluate current model
+            # ------------------------------- #
+            if toEvaluate:
+                if epoch % evaluation_rate == 0:
                     evaluate(model, normalize, epoch, support_loader_1,
                             1, 5, 15, device, result_logger)
                     evaluate(model, normalize, epoch, support_loader_5,
