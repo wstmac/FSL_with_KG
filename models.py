@@ -147,6 +147,9 @@ class Conv4Attension(nn.Module):
         self.conv2 = conv_block(64, 64)
         self.conv3 = conv_block(64, 64)
         self.conv4 = conv_block(64, 64)
+
+        self.dim_feature = 1600
+
         self.fc1 = nn.Linear(1600, k_way)
         self.sp_fc = nn.Linear(1600, sp_k_way)
         self.SELayer = SELayer(64)
@@ -306,6 +309,8 @@ class ResNet(nn.Module):
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+
+        self.dim_feature = 512 * block.expansion
 
         self.fc = nn.Linear(512 * block.expansion, num_classes)
 
