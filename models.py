@@ -13,15 +13,38 @@ class GraphConvolution(nn.Module):
         self.in_features = in_features
         self.out_features = out_features
         self.edges = edges
-        self.weight = np.random.randn(in_features, out_features) * 0.01
+        self.normalize_adjacency_matrix = self.norm_degs_matrix()
+        self.fc = nn.Linear(in_features, out_features)
 
-    def gcn(self, x):
+    def norm_degs_matrix(self):
         I = np.identity(self.edges.shape[0]) #create Identity Matrix of A
-        A_hat = self.edges + I #add self-loop to A
-        D = np.diag(np.sum(A_hat, axis=0)) #create Degree Matrix of A
-        D_half_norm = fractional_matrix_power(D, -0.5) #calculate D to the power of -0.5
-        eq = D_half_norm.dot(A_hat).dot(D_half_norm).dot(x).dot(self.weight)
-        return eq
+        A = self.edges + I #add self-loop to A
+        A = torch.Tensor(A) # convert np array to torch tensor
+
+        node_degrees = A.sum(-1)
+        degs_inv_sqrt = torch.pow(node_degrees, -0.5)
+        norm_degs_matrix = torch.diag_embed(degs_inv_sqrt)
+        return (norm_degs_matrix @ A @ norm_degs_matrix)
+
+    def forward(self, x):
+        return torch.spmm(self.normalize_adjacency_matrix, self.fc(x))
+
+
+class GCN(nn.Module):
+    def __init__(self, layer, layer_nums, edges):
+        super(GCN, self).__init__()
+        self.relu = nn.ReLU(inplace=True)
+        self.gcs = []
+        for i in range(layer):
+            self.gcs.append(GraphConvolution(layer_nums[i], layer_nums[i+1], edges))
+
+    def forward(self, x):
+        for i, gc in enumerate(self.gcs):
+            if i != len(self.gcs) - 1:
+                x = self.relu(gc(x))
+            else:
+                x = gc(x)
+        return x
 
 
 def conv_block(in_channels: int, out_channels: int) -> nn.Module:
@@ -183,21 +206,6 @@ class STKH(nn.Module):
                 features = features / (features.pow(2).sum(dim=1, keepdim=True).sqrt() + EPSILON)
 
             return features, self.fc2(features), sp_outputs
-        
-
-class KG_encoder():
-    def __init__(self, layer, layer_nums, edges):
-        super(KG_encoder, self).__init__()
-        self.gcs = []
-        for i in range(layer):
-            self.gcs.append(GraphConvolution(layer_nums[i], layer_nums[i+1], edges))
-
-    def apply_gc(self, x):
-        for gc in self.gcs:
-            x = gc.gcn(x)
-        return x
-
-
 
 
 # ------------------------------- #

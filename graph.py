@@ -158,7 +158,7 @@ class Graph():
             descriptions.append(desc)
 
         desc_embeddings = model.encode(descriptions)
-        return desc_embeddings
+        return torch.Tensor(desc_embeddings)
 
 
 # ----------------------------------------#

@@ -134,7 +134,7 @@ def main():
 
 
     # knowledge graph encoder
-    kg_encoder = models.KG_encoder(layer, layer_nums, edges)
+    GCN = models.GCN(layer, layer_nums, edges)
 
     # total model
     model = models.STKH(img_encoder, cat_feature, final_feature, len(base_cls))
@@ -168,7 +168,9 @@ def main():
     # import ipdb; ipdb.set_trace()
 
     # start graph convolution
-    kg_embeddings = kg_encoder.apply_gc(desc_embeddings)
+    import ipdb; ipdb.set_trace()
+    kg_embeddings = GCN(desc_embeddings)
+
 
     classFile_to_wikiID = get_classFile_to_wikiID()
     train_class_name_to_id = base.class_name_to_id
