@@ -1,3 +1,4 @@
+import math
 from torch import nn
 import torch.nn.functional as F
 from config import EPSILON
@@ -5,7 +6,7 @@ from scipy.spatial.distance import cdist
 import torch
 import numpy as np
 from scipy.linalg import fractional_matrix_power
-
+from torch.nn.parameter import Parameter
 
 class GraphConvolution(nn.Module):
     def __init__(self, in_features, out_features, edges):
@@ -15,6 +16,12 @@ class GraphConvolution(nn.Module):
         self.edges = edges
         self.normalize_adjacency_matrix = self.norm_degs_matrix()
         self.fc = nn.Linear(in_features, out_features)
+        # self.reset_parameters()
+
+    def reset_parameters(self):
+        stdv = 1. / math.sqrt(self.weight.size(1))
+        self.weight.data.uniform_(-stdv, stdv)
+        self.bias.data.uniform_(-stdv, stdv)
 
     def norm_degs_matrix(self):
         I = np.identity(self.edges.shape[0]) #create Identity Matrix of A
@@ -24,19 +31,24 @@ class GraphConvolution(nn.Module):
         node_degrees = A.sum(-1)
         degs_inv_sqrt = torch.pow(node_degrees, -0.5)
         norm_degs_matrix = torch.diag_embed(degs_inv_sqrt)
-        return (norm_degs_matrix @ A @ norm_degs_matrix)
+        normalize_adjacency_matrix = (norm_degs_matrix @ A @ norm_degs_matrix).to('cuda:0')
+        return normalize_adjacency_matrix
 
     def forward(self, x):
-        return torch.spmm(self.normalize_adjacency_matrix, self.fc(x))
+        # support = torch.mm(x, self.weight)
+        support = self.fc(x)
+        output = torch.spmm(self.normalize_adjacency_matrix, support)
+        return output
 
 
 class GCN(nn.Module):
     def __init__(self, layer, layer_nums, edges):
         super(GCN, self).__init__()
         self.relu = nn.ReLU(inplace=True)
-        self.gcs = []
+        gcs = []
         for i in range(layer):
-            self.gcs.append(GraphConvolution(layer_nums[i], layer_nums[i+1], edges))
+            gcs.append(GraphConvolution(layer_nums[i], layer_nums[i+1], edges))
+        self.gcs = torch.nn.ModuleList(gcs)
 
     def forward(self, x):
         for i, gc in enumerate(self.gcs):
@@ -172,43 +184,56 @@ class Conv4Attension(nn.Module):
         weighted_x4, _ = self.SELayer(x4)
         # flat and normalize weighted x4:
         weighted_x4_flat = weighted_x4.view(x.size(0), -1)
+        # import ipdb; ipdb.set_trace()
         # normalised_x4 = weighted_x4_flat / (x.pow(weighted_x4_flat).sum(dim=1, keepdim=True).sqrt() + EPSILON)
-        return feature, self.fc1(feature), self.sp_fc(weighted_x4_flat)
+        # return feature, self.fc1(feature), self.sp_fc(weighted_x4_flat)
+        return feature, self.fc1(feature), weighted_x4_flat, self.sp_fc(weighted_x4_flat)
 
 
-class STKH(nn.Module):
-    def __init__(self, img_encoder, cat_feature, final_feature, k_way):
-        super(STKH, self).__init__()
+# class FSKG(nn.Module):
+#     def __init__(self, cat_feature, final_feature, k_way):
+#         super(FSKG, self).__init__()
+#         # self.img_encoder = img_encoder
+
+#         self.fc1 = nn.Linear(cat_feature, final_feature)
+#         self.fc2 = nn.Linear(final_feature, k_way)
+
+#     def forward(self, img_features, kg_features, norm=False):
+#         # self.img_encoder.eval()
+#         # img_features, _, sp_outputs = self.img_encoder(x, norm=True)
+#         combined_features = torch.cat((img_features, kg_features), 1)
+
+#         features = self.fc1(combined_features)
+
+#         if norm:
+#             features = features / (features.pow(2).sum(dim=1, keepdim=True).sqrt() + EPSILON)
+
+#         return features, self.fc2(features)
+
+
+class FSKG(nn.Module):
+    def __init__(self, cat_feature, final_feature, img_encoder, kg_encoder, k_way):
+        super(FSKG, self).__init__()
         self.img_encoder = img_encoder
+        self.kg_encoder = kg_encoder
 
-        self.fc1 = nn.Linear(cat_feature, final_feature)
-        self.fc2 = nn.Linear(final_feature, k_way)
+        self.fc1 = nn.Linear(cat_feature, k_way)
+        # self.fc2 = nn.Linear(final_feature, k_way)
 
-    def forward(self, x, kg_features, norm=False):
-        img_features, _, sp_outputs = self.img_encoder(x, norm=True)
-        combined_features = torch.cat((img_features, kg_features), 1)
+    def forward(self, images, desc_embeddings, imgLabels_to_nodeIndexs, norm=False):
+        # self.img_encoder.eval()
+        img_features, _, att_features, sp_outputs = self.img_encoder(images, norm=True)
+        kg_features = self.kg_encoder(desc_embeddings)
+        corr_features = kg_features[imgLabels_to_nodeIndexs, :]
 
-        features = self.fc1(combined_features)
+        combined_features = torch.cat((img_features, corr_features), 1)
+
+        # features = self.fc1(combined_features)
 
         if norm:
-            features = features / (features.pow(2).sum(dim=1, keepdim=True).sqrt() + EPSILON)
+            combined_features = combined_features / (combined_features.pow(2).sum(dim=1, keepdim=True).sqrt() + EPSILON)
 
-        return features, self.fc2(features), sp_outputs
-
-    def predict(self, x, kg_features, norm=False):
-        img_features, _, sp_outputs = self.img_encoder(x, norm=True)
-
-        predictions = []
-
-        for i, _ in enumerate(kg_features.shape[0]):
-            combined_features = torch.cat((img_features, kg_features[i]), 1)
-
-            features = self.fc1(combined_features)
-
-            if norm:
-                features = features / (features.pow(2).sum(dim=1, keepdim=True).sqrt() + EPSILON)
-
-            return features, self.fc2(features), sp_outputs
+        return combined_features, self.fc1(combined_features), sp_outputs, att_features, corr_features
 
 
 # ------------------------------- #
