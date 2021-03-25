@@ -1,7 +1,6 @@
 import json
 from tqdm import tqdm
 from SPARQLWrapper import SPARQLWrapper, JSON
-from tqdm import tqdm
 import csv
 import argparse
 
