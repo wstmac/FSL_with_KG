@@ -183,3 +183,22 @@ def extract_embedding_by_labels(nodes, kg_embeddings, labels, class_name_to_id, 
     # import ipdb; ipdb.set_trace()
     # get corresponding embeddings
     return torch.FloatTensor(kg_embeddings[wikiID_indexs, :])
+
+
+# ----------------------------------------#
+# Get corresbonding node indexs by labels
+# --------------------------------------- #
+def find_nodeIndex_by_imgLabels(nodes, labels, id_to_class_name, classFile_to_wikiID):
+    
+
+    # find file name by labels
+    file_names = [id_to_class_name[label.item()] for label in labels]
+
+    # find wikiID by file names
+    wikiID_list = [classFile_to_wikiID[file_name] for file_name in file_names]
+
+    # find wikiID indexs in nodes
+    wikiID_indexs = [nodes.index(wikiID) for wikiID in wikiID_list]
+    # import ipdb; ipdb.set_trace()
+    # get corresponding embeddings
+    return wikiID_indexs
