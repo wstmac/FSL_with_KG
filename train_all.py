@@ -101,7 +101,7 @@ def main():
     classFile_to_superclasses, superclassID_to_wikiID =\
         knowledge_graph.class_file_to_superclasses(1, [1,2])
     nodes = knowledge_graph.nodes
-    import ipdb; ipdb.set_trace()
+    # import ipdb; ipdb.set_trace()
 
     layer = 2
     layer_nums = [768, 2048, 1600]
