@@ -31,13 +31,15 @@ class GraphConvolution(nn.Module):
         node_degrees = A.sum(-1)
         degs_inv_sqrt = torch.pow(node_degrees, -0.5)
         norm_degs_matrix = torch.diag_embed(degs_inv_sqrt)
-        normalize_adjacency_matrix = (norm_degs_matrix @ A @ norm_degs_matrix).to('cuda:0')
+        normalize_adjacency_matrix = (norm_degs_matrix @ A @ norm_degs_matrix)
         return normalize_adjacency_matrix
 
     def forward(self, x):
         # support = torch.mm(x, self.weight)
         support = self.fc(x)
-        output = torch.spmm(self.normalize_adjacency_matrix, support)
+        device = support.get_device()
+        normalize_adjacency_matrix = self.normalize_adjacency_matrix.to(f'cuda:{device}')
+        output = torch.spmm(normalize_adjacency_matrix, support)
         return output
 
 
