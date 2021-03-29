@@ -230,8 +230,8 @@ class FSKG(nn.Module):
 
         # features = self.fc1(combined_features)
 
-        if norm:
-            combined_features = combined_features / (combined_features.pow(2).sum(dim=1, keepdim=True).sqrt() + EPSILON)
+        # if norm:
+        #     combined_features = combined_features / (combined_features.pow(2).sum(dim=1, keepdim=True).sqrt() + EPSILON)
 
         return combined_features, self.fc1(combined_features), sp_outputs, att_features, corr_features
 
