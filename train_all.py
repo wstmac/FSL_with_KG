@@ -92,7 +92,7 @@ def main():
         # Saving training parameters
         # ------------------------------- #
         result_logger.info(f'Model: {model_arch}')
-        result_logger.info('Fusion Method: {fusion_method}; Lamda: {lamda}')
+        result_logger.info(f'Fusion Method: {fusion_method}; Lamda: {lamda}')
         result_logger.info(f'Attention Layer: {args.layer}')
         result_logger.info(f'Learning rate: {learning_rate}')
         result_logger.info(f'Alpha: {alpha} Beta: {beta} Gamma: {gamma}')

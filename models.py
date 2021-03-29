@@ -213,7 +213,7 @@ class FSKG(nn.Module):
         # combined_features = torch.cat((img_features, corr_features), 1)
 
         # 2. Add two features 
-        import ipdb; ipdb.set_trace()
+        # import ipdb; ipdb.set_trace()
         combined_features = img_features + self.lamda * corr_features
 
 
