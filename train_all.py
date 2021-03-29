@@ -169,7 +169,7 @@ def main():
 
     if save_settings:
         result_logger.info('optimizer: torch.optim.SGD(model.parameters(), '
-            f'lr=learning_rate, momentum=0.9, weight_decay=1e-4, nesterov=True)')
+            f'lr={learning_rate}, momentum=0.9, weight_decay=1e-4, nesterov=True)')
         result_logger.info(f'scheduler: MultiStepLR(optimizer, milestones={scheduler_milestones}, gamma=0.1)\n')
         # result_logger.info('='*40+'Results Below'+'='*40+'\n')
 
@@ -290,6 +290,7 @@ def evaluate(model, normalize, epoch, support_loader, n, k, q, device, logger, n
                 query_corr_nodeIndexs = find_nodeIndex_by_imgLabels(nodes, (q*k)*[data[1][0+i*n]], id_to_class_name, classFile_to_wikiID) 
                 query_imgs, _, _, _, _ = model(imgs[n*k:], desc_embeddings, query_corr_nodeIndexs, norm=normalize)
                 queries.append(query_imgs)
+            # import ipdb; ipdb.set_trace()
 
             acc_l2 = argmax_evaluation(support_imgs, queries, labels, n, k, q, 'l2')
             acc_cosine = argmax_evaluation(support_imgs, queries, labels, n, k, q, 'cosine')
