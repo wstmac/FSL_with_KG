@@ -90,7 +90,7 @@ def main():
         result_logger.info(f'Model: {model_arch}')
         result_logger.info(f'Attention Layer: {args.layer}')
         result_logger.info(f'Learning rate: {learning_rate}')
-        result_logger.info(f'Alpha:{alpha} Beta:{beta} Gamma:{gamma}')
+        result_logger.info(f'Alpha: {alpha} Beta: {beta} Gamma: {gamma}')
         # result_logger.info(f'alpha: {alpha}')
         result_logger.info(f'Normalize feature vector: {normalize}')
 
