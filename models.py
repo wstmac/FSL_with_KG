@@ -186,49 +186,36 @@ class Conv4Attension(nn.Module):
         weighted_x4, _ = self.SELayer(x4)
         # flat and normalize weighted x4:
         weighted_x4_flat = weighted_x4.view(x.size(0), -1)
-        # import ipdb; ipdb.set_trace()
-        # normalised_x4 = weighted_x4_flat / (x.pow(weighted_x4_flat).sum(dim=1, keepdim=True).sqrt() + EPSILON)
-        # return feature, self.fc1(feature), self.sp_fc(weighted_x4_flat)
+
         return feature, self.fc1(feature), weighted_x4_flat, self.sp_fc(weighted_x4_flat)
 
 
-# class FSKG(nn.Module):
-#     def __init__(self, cat_feature, final_feature, k_way):
-#         super(FSKG, self).__init__()
-#         # self.img_encoder = img_encoder
-
-#         self.fc1 = nn.Linear(cat_feature, final_feature)
-#         self.fc2 = nn.Linear(final_feature, k_way)
-
-#     def forward(self, img_features, kg_features, norm=False):
-#         # self.img_encoder.eval()
-#         # img_features, _, sp_outputs = self.img_encoder(x, norm=True)
-#         combined_features = torch.cat((img_features, kg_features), 1)
-
-#         features = self.fc1(combined_features)
-
-#         if norm:
-#             features = features / (features.pow(2).sum(dim=1, keepdim=True).sqrt() + EPSILON)
-
-#         return features, self.fc2(features)
-
-
 class FSKG(nn.Module):
-    def __init__(self, cat_feature, final_feature, img_encoder, kg_encoder, k_way):
+    def __init__(self, cat_feature, final_feature, img_encoder, kg_encoder, k_way, lamda):
         super(FSKG, self).__init__()
         self.img_encoder = img_encoder
         self.kg_encoder = kg_encoder
+        self.lamda = lamda
 
         self.fc1 = nn.Linear(cat_feature, k_way)
         # self.fc2 = nn.Linear(final_feature, k_way)
 
     def forward(self, images, desc_embeddings, imgLabels_to_nodeIndexs, norm=False):
-        # self.img_encoder.eval()
         img_features, _, att_features, sp_outputs = self.img_encoder(images, norm=True)
         kg_features = self.kg_encoder(desc_embeddings)
         corr_features = kg_features[imgLabels_to_nodeIndexs, :]
 
-        combined_features = torch.cat((img_features, corr_features), 1)
+        # ------------------------------- #
+        # Feature Fusion Part
+        # ------------------------------- #
+        
+        # 1. Concatenate two features 
+        # combined_features = torch.cat((img_features, corr_features), 1)
+
+        # 2. Add two features 
+        import ipdb; ipdb.set_trace()
+        combined_features = img_features + self.lamda * corr_features
+
 
         # features = self.fc1(combined_features)
 

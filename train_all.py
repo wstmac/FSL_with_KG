@@ -39,6 +39,8 @@ def main():
     parser.add_argument('--normalize', action='store_true')
     parser.add_argument('--save_settings', action='store_true')
     parser.add_argument('--layer', default=4, type=int)
+    parser.add_argument('--fusion_method', default='sum', type=str)
+    parser.add_argument('--lamda', default=0, type=float)
     # parser.add_argument('--gcn_path', type=str)
     # parser.add_argument('--img_encoder_path', type=str)
 
@@ -63,6 +65,8 @@ def main():
     scheduler_milestones = args.scheduler_milestones
     save_settings = args.save_settings
     support_groups = args.support_groups
+    fusion_method = args.fusion_method
+    lamda = args.lamda
 
     # gcn_path = args.gcn_path
     # img_encoder_path = args.img_encoder_path
@@ -88,6 +92,7 @@ def main():
         # Saving training parameters
         # ------------------------------- #
         result_logger.info(f'Model: {model_arch}')
+        result_logger.info('Fusion Method: {fusion_method}; Lamda: {lamda}')
         result_logger.info(f'Attention Layer: {args.layer}')
         result_logger.info(f'Learning rate: {learning_rate}')
         result_logger.info(f'Alpha: {alpha} Beta: {beta} Gamma: {gamma}')
@@ -107,7 +112,7 @@ def main():
     layer_nums = [768, 2048, 1600]
     edges = knowledge_graph.edges
 
-    cat_feature = 3200
+    cat_feature = 1600
     final_feature = 1024
 
     ####################
@@ -158,7 +163,7 @@ def main():
     # GCN.eval()
 
     # total model
-    model = models.FSKG(cat_feature, final_feature, img_encoder, GCN, len(base_cls))
+    model = models.FSKG(cat_feature, final_feature, img_encoder, GCN, len(base_cls), lamda)
     model.to(device)
     
 
@@ -305,6 +310,8 @@ def evaluate(model, normalize, epoch, support_loader, n, k, q, device, logger, n
 
 def loss_fn(alpha, beta, gamma, device):
 
+    scaler = 10
+
     def _loss_fn(class_outputs, sp_outputs, labels, sp_labels, att_features, corr_features):
         # import ipdb; ipdb.set_trace()
         loss_target = torch.ones(att_features.shape[0]).to(device)
@@ -312,7 +319,7 @@ def loss_fn(alpha, beta, gamma, device):
         CEL_loss = F.cross_entropy(class_outputs, labels)
         Feature_loss = F.cosine_embedding_loss(att_features, corr_features, loss_target)
         
-        combo_loss = CEL_loss * alpha + BCE_loss * beta + Feature_loss * gamma
+        combo_loss = CEL_loss * alpha + BCE_loss * beta + Feature_loss * gamma * scaler
 
         return combo_loss
 
