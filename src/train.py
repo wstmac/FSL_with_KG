@@ -29,7 +29,7 @@ best_prec1 = -1
 
 
 def main():
-    global args, best_prec1
+    global args, best_prec1, device
     args = configuration.parser_args()
     # import ipdb; ipdb.set_trace()
     ### initial logger
@@ -42,16 +42,20 @@ def main():
         torch.manual_seed(args.seed)
         cudnn.deterministic = True
 
+    # select GPU device
+    device = torch.device(f'cuda:{args.gpu}')
+
     # create model
     log.info("=> creating model '{}'".format(args.arch))
     model = models.__dict__[args.arch](num_classes=args.num_classes, remove_linear=args.do_meta_train)
 
     log.info('Number of model parameters: {}'.format(sum([p.data.nelement() for p in model.parameters()])))
 
-    model = torch.nn.DataParallel(model).cuda()
+    model = torch.nn.DataParallel(model).to(device)
+    # model = model.to(device)
 
     # define loss function (criterion) and optimizer
-    criterion = nn.CrossEntropyLoss().cuda()
+    criterion = nn.CrossEntropyLoss().to(device)
 
     optimizer = get_optimizer(model)
 
@@ -106,7 +110,7 @@ def main():
     scheduler = get_scheduler(len(train_loader), optimizer)
     tqdm_loop = warp_tqdm(list(range(args.start_epoch, args.epochs)))
     for epoch in tqdm_loop:
-        scheduler.step(epoch)
+        
         # train for one epoch
         train(train_loader, model, criterion, optimizer, epoch, scheduler, log)
         # evaluate on meta validation set
@@ -128,6 +132,8 @@ def main():
             'best_prec1': best_prec1,
             'optimizer': optimizer.state_dict(),
         }, is_best, folder=args.save_path)
+
+        scheduler.step()
 
     # do evaluate at the end
     do_extract_and_evaluate(model, log)
@@ -160,8 +166,9 @@ def meta_val(test_loader, model, train_mean=None):
     with torch.no_grad():
         tqdm_test_loader = warp_tqdm(test_loader)
         for i, (inputs, target) in enumerate(tqdm_test_loader):
-            target = target.cuda(0, non_blocking=True)
-            output = model(inputs, True)[0].cuda(0)
+            inputs = inputs.to(device, non_blocking=True)
+            target = target.to(device, non_blocking=True)
+            output = model(inputs, True)[0].to(device)
             if train_mean is not None:
                 output = output - train_mean
             train_out = output[:args.meta_val_way * args.meta_val_shot]
@@ -174,7 +181,7 @@ def meta_val(test_loader, model, train_mean=None):
             acc = (prediction == test_label).float().mean()
             top1.update(acc.item())
             if not args.disable_tqdm:
-                tqdm_test_loader.set_description('Acc {:.2f}'.format(top1.avg * 100))
+                tqdm_test_loader.set_description('Meta Val Acc {:.2f}'.format(top1.avg * 100))
     return top1.avg
 
 
@@ -198,14 +205,14 @@ def train(train_loader, model, criterion, optimizer, epoch, scheduler, log):
 
         if args.do_meta_train:
             target = torch.arange(args.meta_train_way)[:, None].repeat(1, args.meta_train_query).reshape(-1).long()
-        target = target.cuda(non_blocking=True)
-
+        target = target.to(device, non_blocking=True)
+        input = input.to(device, non_blocking=True)
         # compute output
         r = np.random.rand(1)
         if args.beta > 0 and r < args.cutmix_prob:
             # generate mixed sample
             lam = np.random.beta(args.beta, args.beta)
-            rand_index = torch.randperm(input.size()[0]).cuda()
+            rand_index = torch.randperm(input.size()[0]).to(device)
             target_a = target
             target_b = target[rand_index]
             bbx1, bby1, bbx2, bby2 = rand_bbox(input.size(), lam)
@@ -218,7 +225,7 @@ def train(train_loader, model, criterion, optimizer, epoch, scheduler, log):
         else:
             output = model(input)
             if args.do_meta_train:
-                output = output.cuda(0)
+                output = output.to(device)
                 shot_proto = output[:args.meta_train_shot * args.meta_train_way]
                 query_proto = output[args.meta_train_shot * args.meta_train_way:]
                 shot_proto = shot_proto.reshape(args.meta_train_way, args.meta_train_shot, -1).mean(1)
@@ -236,7 +243,7 @@ def train(train_loader, model, criterion, optimizer, epoch, scheduler, log):
         top1.update(prec1[0], input.size(0))
         top5.update(prec5[0], input.size(0))
         if not args.disable_tqdm:
-            tqdm_train_loader.set_description('Acc {:.2f}'.format(top1.avg))
+            tqdm_train_loader.set_description(f'Epoch {epoch:2d} Top1 Acc: {top1.avg:.2f}')
 
         # measure elapsed time
         batch_time.update(time.time() - end)
@@ -310,7 +317,7 @@ def setup_logger(filepath):
     if os.path.dirname(filepath) is not '':
         if not os.path.isdir(os.path.dirname(filepath)):
             os.makedirs(os.path.dirname(filepath))
-    file_handle = logging.FileHandler(filename=filepath, mode="a")
+    file_handle = logging.FileHandler(filename=filepath, mode="w")
     file_handle.set_name(file_handle_name)
     file_handle.setFormatter(file_formatter)
     logger.addHandler(file_handle)

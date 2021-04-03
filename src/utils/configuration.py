@@ -5,6 +5,8 @@ def parser_args():
     parser = configargparse.ArgParser(description='PyTorch ImageNet Training')
     parser.add('-c', '--config', required=True,
                is_config_file=True, help='config file')
+    parser.add_argument('--gpu', default=0, type=int,
+                        help='GPU id to be used.')
     ### dataset
     parser.add_argument('--data', metavar='DIR', help='path to dataset')
     parser.add_argument('--num-classes', type=int, default=64,
