@@ -51,8 +51,8 @@ def main():
 
     log.info('Number of model parameters: {}'.format(sum([p.data.nelement() for p in model.parameters()])))
 
-    model = torch.nn.DataParallel(model).to(device)
-    # model = model.to(device)
+    # model = torch.nn.DataParallel(model).to(device)
+    model = model.to(device)
 
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().to(device)
