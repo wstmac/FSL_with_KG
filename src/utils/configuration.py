@@ -11,6 +11,8 @@ def parser_args():
     parser.add_argument('--data', metavar='DIR', help='path to dataset')
     parser.add_argument('--num-classes', type=int, default=64,
                         help='use all data to train the network')
+    parser.add_argument('--num-spclasses', type=int, default=-1,
+                        help='number of super classes in the knowledge graph')
     parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
                         help='number of data loading workers (default: 8)')
     parser.add_argument('--epochs', default=90, type=int, metavar='N',
@@ -41,6 +43,16 @@ def parser_args():
                         metavar='W', help='weight decay (default: 1e-4)')
     parser.add_argument('--nesterov', action='store_true',
                         help='use nesterov for SGD, disable it in default')
+    parser.add_argument('--loss-alpha', default=0, type=float,
+                        help='alpha for loss weight of CrossEntropyLoss')
+    parser.add_argument('--loss-beta', default=0, type=float,
+                        help='beta for loss weight of BCELoss')
+    parser.add_argument('--loss-gamma', default=0, type=float,
+                        help='gamma for loss weight of KG-Visual loss')
+    parser.add_argument('--pool-type', default='avg_pool', choices=['avg_pool', 'max_pool'], type=str,
+                        help='pool type for the channel-wise attention mechanism')
+    parser.add_argument('--top-k', default=16, type=int,
+                        help='select top-k feature maps of super feature')
     ### meta val setting
     parser.add_argument('--meta-test-iter', type=int, default=10000,
                         help='number of iterations for meta test')
@@ -80,6 +92,8 @@ def parser_args():
                         help='path to the folder stored split files.')
     parser.add_argument('--save-path', default='result/default', type=str,
                         help='path to folder stored the log and checkpoint')
+    parser.add_argument('--model-dir', default=None, type=str,
+                        help='path to folder stored the model, log and checkpoint')
     parser.add_argument('--seed', default=None, type=int,
                         help='seed for initializing training. ')
     parser.add_argument('--disable-tqdm', action='store_true',
@@ -96,4 +110,9 @@ def parser_args():
                         help='evaluate the final result')
     parser.add_argument('--pretrain', type=str, default=None,
                         help='path to the pretrained model, used for fine-tuning')
+    parser.add_argument('--log-info', action='store_true',
+                        help='Write trianing parameters into the log file')
+    parser.add_argument('--debug', action='store_true',
+                        help='Write trianing parameters into the log file')
+                        
     return parser.parse_args()

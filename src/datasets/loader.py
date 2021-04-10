@@ -8,7 +8,7 @@ __all__ = ['DatasetFolder']
 
 class DatasetFolder(object):
 
-    def __init__(self, root, split_dir, split_type, transform, out_name=False):
+    def __init__(self, root, split_dir, split_type, transform, out_name=False, spclasses_dict=None):
         assert split_type in ['train', 'test', 'val', 'query', 'repr']
         split_file = os.path.join(split_dir, split_type + '.csv')
         assert os.path.isfile(split_file)
@@ -26,6 +26,8 @@ class DatasetFolder(object):
         self.labels = mapped_labels
         self.out_name = out_name
         self.length = len(self.data)
+        self.label_to_classFile = label_key
+        self.class_file_to_superclasses = spclasses_dict
 
     def __len__(self):
         return self.length
@@ -35,9 +37,15 @@ class DatasetFolder(object):
         img = Image.open(self.root + '/' + self.data[index]).convert('RGB')
         label = self.labels[index]
         label = int(label)
-        if self.transform:
-            img = self.transform(img)
-        if self.out_name:
-            return img, label, self.data[index]
+
+        img = self.transform(img)
+
+        if self.class_file_to_superclasses != None:
+            # get super label
+            class_file = self.data[index][:9]
+            sp_label = self.class_file_to_superclasses[class_file]
+
+            return img, label, sp_label
         else:
             return img, label
+
