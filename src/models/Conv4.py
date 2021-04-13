@@ -117,3 +117,41 @@ class Conv4Att(nn.Module):
         att_feature = att_feature.view(x.size(0), -1)
 
         return feature, self.fc(feature), att_feature, self.sp_fc(att_feature)
+
+
+# --------------------------------------------------------------------- #
+# Version 3: match image features to the super class embedding features
+# --------------------------------------------------------------------- #
+# class Conv4Att(nn.Module):
+#     def __init__(self, num_classes, sp_embedding_feature_dim, top_k=16):
+#         super(Conv4Att, self).__init__()
+#         self.conv1 = conv_block(3, 64)
+#         self.conv2 = conv_block(64, 64)
+#         self.conv3 = conv_block(64, 64)
+#         self.conv4 = conv_block(64, 64)
+
+#         self.top_k = 16
+
+#         self.fc = nn.Linear(1600, num_classes)
+#         self.sp_fc = nn.Linear(400, sp_embedding_feature_dim)
+#         self.SELayer = SELayer(64, self.top_k)
+
+#         # if pool_type == 'avg_pool':
+#         #     self.pool = nn.AdaptiveAvgPool2d((1, 1))
+#         # elif pool_type == 'max_pool':
+#         #     self.pool = nn.AdaptiveMaxPool2d((1, 1))
+
+#     def forward(self, x):
+#         x1 = self.conv1(x)  # (batch_size, 64, 42, 42): 64 is attention dimension in attention class
+#         x2 = self.conv2(x1) # (batch_size, 64, 21, 21): 64 is attention dimension in attention class
+#         x3 = self.conv3(x2) # (batch_size, 64, 10, 10): 64 is attention dimension in attention class
+#         x4 = self.conv4(x3) # (batch_size, 64, 5, 5): 64 is attention dimension in attention class
+        
+#         feature = x4.view(x.size(0), -1)
+#         # att_feature, _ = self.SELayer(x4)
+#         # att_feature = att_feature.view(x.size(0), -1)
+
+#         att_feature = self.SELayer(x4, all=False)[0]
+#         att_feature = att_feature.view(x.size(0), -1)
+
+#         return feature, self.fc(feature), att_feature, self.sp_fc(att_feature)

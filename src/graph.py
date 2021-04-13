@@ -129,6 +129,26 @@ class Graph():
             wikiID, _ = self.get_node_info_by_index(key)
             classFile = wikiID_to_classFile[wikiID]
 
+
+
+
+            # ------------------------------- #
+            # Version 3
+            # ------------------------------- #
+            # superclass_descs = ''
+            # for v in value:
+            #     _, (_, desc) = self.get_node_info_by_index(v)
+            #     superclass_descs = superclass_descs + ' ' + desc
+
+            # #embed descriptions 
+            # sp_desc_embedding = model.encode(superclass_descs, device=f'cuda:{device}')
+
+            # classFile_to_superclasses[classFile] = sp_desc_embedding            
+
+
+            # ------------------------------- #
+            # version 1 and 2
+            # ------------------------------- #
             superclass_indexs = []
             for v in value:
                 superclass_indexs.append(superclass_sorted_list.index(v))

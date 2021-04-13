@@ -9,7 +9,7 @@ from .miscellaneous import MINI_CLASSES_PATH, RELATIONSHIPS
 def extract_subgraph(file_path):
     subjects = get_subjects()
     lookup_table = subjects.copy()
-    lookup_table['P31'] = 'instanceOf'
+    # lookup_table['P31'] = 'instanceOf'
     lookup_table['P279'] = 'subclassOf'
 
     nodes, rels, lookup_table =\

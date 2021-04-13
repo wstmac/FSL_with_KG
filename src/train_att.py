@@ -19,7 +19,7 @@ import torch.utils.data
 import torch.utils.data.distributed
 from torch.optim.lr_scheduler import MultiStepLR, StepLR, CosineAnnealingLR
 import tqdm
-from utils import configuration
+from utils import configuration, miscellaneous
 from numpy import linalg as LA
 from scipy.stats import mode
 from graph import Graph
@@ -64,14 +64,14 @@ def main():
     # load knowledge graph
     knowledge_graph = Graph()
     classFile_to_superclasses, superclassID_to_wikiID =\
-        knowledge_graph.class_file_to_superclasses(1, [1,2])
+        knowledge_graph.class_file_to_superclasses(1, [1])
 
     # create model
     if args.log_info and not args.debug:
         log.info("=> creating model '{}'".format(args.arch))
         result_log.info("=> creating model '{}'".format(args.arch))
-    if args.debug:
-        import ipdb; ipdb.set_trace()
+    # if args.debug:
+    #     import ipdb; ipdb.set_trace()
     model = models.__dict__[args.arch](num_classes=args.num_classes, num_spclasses=len(superclassID_to_wikiID), top_k=args.top_k)
 
     if args.log_info and not args.debug:
@@ -130,19 +130,20 @@ def main():
     cudnn.benchmark = True
 
     # Data loading code
+    used_files = set(miscellaneous.get_classFile_to_wikiID().keys())
 
     if args.evaluate:
-        do_extract_and_evaluate(model, result_log, classFile_to_superclasses)
+        do_extract_and_evaluate(model, result_log, classFile_to_superclasses, used_files)
         return
 
     if args.do_meta_train:
         sample_info = [args.meta_train_iter, args.meta_train_way, args.meta_train_shot, args.meta_train_query]
-        train_loader = get_dataloader('train', not args.disable_train_augment, sample=sample_info, spclasses_dict=classFile_to_superclasses)
+        train_loader = get_dataloader('train', used_files, not args.disable_train_augment, sample=sample_info, spclasses_dict=classFile_to_superclasses)
     else:
-        train_loader = get_dataloader('train', not args.disable_train_augment, shuffle=True, spclasses_dict=classFile_to_superclasses)
+        train_loader = get_dataloader('train', used_files, not args.disable_train_augment, shuffle=True, spclasses_dict=classFile_to_superclasses)
 
     sample_info = [args.meta_val_iter, args.meta_val_way, args.meta_val_shot, args.meta_val_query] # 5-way 1-shot 15 val quereis
-    val_loader = get_dataloader('val', False, sample=sample_info, spclasses_dict=classFile_to_superclasses)
+    val_loader = get_dataloader('val', used_files, False, sample=sample_info, spclasses_dict=classFile_to_superclasses)
 
     scheduler = get_scheduler(len(train_loader), optimizer)
     tqdm_loop = warp_tqdm(list(range(args.start_epoch, args.epochs)))
@@ -173,7 +174,7 @@ def main():
         scheduler.step()
 
     # do evaluate at the end
-    do_extract_and_evaluate(model, result_log, classFile_to_superclasses)
+    do_extract_and_evaluate(model, result_log, classFile_to_superclasses, used_files)
 
 
 def get_metric(metric_type):
@@ -207,8 +208,8 @@ def metric_prediction(gallery, query, sp_gallery, sp_query, train_label, metric_
 def meta_val(test_loader, model, train_mean=None):
     top1 = AverageMeter()
     model.eval()
-    if args.debug:
-        import ipdb; ipdb.set_trace()
+    # if args.debug:
+    #     import ipdb; ipdb.set_trace()
     with torch.no_grad():
         tqdm_test_loader = warp_tqdm(test_loader)
         for i, (inputs, target, sp_target) in enumerate(tqdm_test_loader):
@@ -470,14 +471,15 @@ def extract_feature(train_loader, val_loader, model, tag='last'):
         return all_info
 
 
-def get_dataloader(split, aug=False, shuffle=True, out_name=False, sample=None, spclasses_dict=None):
+def get_dataloader(split, used_files, aug=False, shuffle=True, out_name=False, sample=None, spclasses_dict=None):
     # sample: iter, way, shot, query
     if aug:
         transform = datasets.with_augment(84, disable_random_resize=args.disable_random_resize)
     else:
         transform = datasets.without_augment(84, enlarge=args.enlarge)
-    sets = datasets.DatasetFolder(args.data, args.split_dir, split, transform, out_name=out_name, spclasses_dict=spclasses_dict)
-
+    sets = datasets.DatasetFolder(args.data, args.split_dir, split, used_files, transform, out_name=out_name, spclasses_dict=spclasses_dict)
+    # if args.debug:
+    #     import ipdb; ipdb.set_trace()
     if sample is not None:
         sampler = datasets.CategoriesSampler(sets.labels, *sample)
         loader = torch.utils.data.DataLoader(sets, batch_sampler=sampler,
@@ -577,8 +579,8 @@ def metric_class_type(gallery, query, sp_gallery, sp_query, train_label, test_la
     sp_subtract = sp_gallery[:, None, :] - sp_query
 
 
-    if args.debug:
-        import ipdb; ipdb.set_trace()
+    # if args.debug:
+    #     import ipdb; ipdb.set_trace()
     distance = LA.norm(subtract, 2, axis=-1)
     sp_distance = LA.norm(sp_subtract, 2, axis=-1)
 
@@ -621,9 +623,9 @@ def sample_case(ld_dict, shot):
     # train_data, test_data, sp_train_data, sp_test_data, train_label, test_label
 
 
-def do_extract_and_evaluate(model, log, classFile_to_superclasses):
-    train_loader = get_dataloader('train', aug=False, shuffle=False, out_name=False, spclasses_dict=classFile_to_superclasses)
-    val_loader = get_dataloader('test', aug=False, shuffle=False, out_name=False, spclasses_dict=classFile_to_superclasses)
+def do_extract_and_evaluate(model, log, classFile_to_superclasses, used_files):
+    train_loader = get_dataloader('train', used_files, aug=False, shuffle=False, out_name=False, spclasses_dict=classFile_to_superclasses)
+    val_loader = get_dataloader('test', used_files, aug=False, shuffle=False, out_name=False, spclasses_dict=classFile_to_superclasses)
     load_checkpoint(model, 'last')
     out_mean, sp_out_mean, fc_out_mean, out_dict, fc_out_dict = extract_feature(train_loader, val_loader, model, 'last')
     accuracy_info_shot1 = meta_evaluate(out_dict, out_mean, sp_out_mean, 1)

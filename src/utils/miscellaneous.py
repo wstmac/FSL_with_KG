@@ -11,7 +11,7 @@ REL_PATH = f'{PATH}/rel.csv'
 MINI_CLASSES_PATH = f'{PATH}/miniDatasets.txt'
 LOOKUP_TABLE_PATH = f'{PATH}/lookup_table.json'
 
-RELATIONSHIPS = {'P31':'instanceOf', 'P279':'subclassOf'}
+RELATIONSHIPS = {'P279':'subclassOf'}
 EPSILON = 1e-8
 
 # ------------------------------- #

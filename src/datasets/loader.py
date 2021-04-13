@@ -8,18 +8,18 @@ __all__ = ['DatasetFolder']
 
 class DatasetFolder(object):
 
-    def __init__(self, root, split_dir, split_type, transform, out_name=False, spclasses_dict=None):
+    def __init__(self, root, split_dir, split_type, used_files, transform, out_name=False, spclasses_dict=None):
         assert split_type in ['train', 'test', 'val', 'query', 'repr']
         split_file = os.path.join(split_dir, split_type + '.csv')
         assert os.path.isfile(split_file)
         with open(split_file, 'r') as f:
-            split = [x.strip().split(',') for x in f.readlines()[1:] if x.strip() != '']
+            split = [x.strip().split(',') for x in f.readlines()[1:] if x.strip() != '' and x.strip().split(',')[1] in used_files]
 
         data, ori_labels = [x[0] for x in split], [x[1] for x in split]
         label_key = sorted(np.unique(np.array(ori_labels)))
         label_map = dict(zip(label_key, range(len(label_key))))
         mapped_labels = [label_map[x] for x in ori_labels]
-
+        # import ipdb; ipdb.set_trace()
         self.root = root
         self.transform = transform
         self.data = data
