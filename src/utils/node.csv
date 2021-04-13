@@ -1,0 +1,477 @@
+wikiID:ID,content,:LABEL
+Q217594,"('class', 'collection of sets in mathematics that can be defined based on a property of its members')",Common_Node
+Q10675206,"('ingredient', 'substance which is part of some product')",Common_Node
+Q12639,"('idiophone', 'class of musical instruments')",Common_Node
+Q3444710,"('carton', 'box or container usually made of paperboard and sometimes of corrugated fiberboard')",Class_Node
+Q181055,"('hotdog', 'cooked or grilled meat, often eaten with a bread bun')",Class_Node
+Q36161,"('set', 'well-defined mathematical collection of distinct objects')",Common_Node
+Q692104,"('parallel_bars', ""apparatus used in men's artistic gymnastics"")",Class_Node
+Q614379,"('scoreboard', 'display device used in sports')",Class_Node
+Q35825432,"('converter', 'entity that converts, modifies, or transforms, producing an change of state, observable on the entity itself or on other objects')",Common_Node
+Q8023902,"('wind-powered vehicle', 'vehicle pushed by the winds')",Common_Node
+Q27096220,"('natural geographic entity', 'geographic entity')",Common_Node
+Q16391167,"('vessel', 'large vehicule, watercraft, boat, spaceship or ship')",Common_Node
+Q22809652,"('manufactured object', 'in the strict sense, object made by humans with their hands')",Common_Node
+Q3578987,"('fire_screen', 'fire screen')",Class_Node
+Q778637,"('output device', 'type of computer hardware device that trasmits information from the computer to the user')",Common_Node
+Q8377,"('oboe', 'musical instrument of the woodwind family')",Class_Node
+Q167633,"('clog', 'thick-soled protective footwear made of wood')",Class_Node
+Q2082064,"('consomme', 'a type of clear soup')",Class_Node
+Q82604,"('design', 'creation of a plan or convention for the construction of an object or a system; process of creation; act of creativity and innovation')",Common_Node
+Q752870,"('motor vehicle', 'self-propelled wheeled vehicle')",Common_Node
+Q2002016,"('fastener', 'hardware device that mechanically joins or affixes two or more objects together')",Common_Node
+Q81799,"('fast food', 'food prepared and served in a small amount of time')",Common_Node
+Q1515493,"('road vehicle', 'vehicle intended to be used out at the streets and highways')",Common_Node
+Q66394244,"('physical anatomical entity', ""unit of member of a species's structural organization"")",Common_Node
+Q153556,"('ranged weapon', 'weapon used to harm or kill at greater distances than that of direct hand-to-hand combat')",Common_Node
+Q1184840,"('military vehicle', 'land combat and transportation vehicles which are designed for or are significantly used by military forces')",Common_Node
+Q185369,"('photocopier', 'device for reproducing documents')",Class_Node
+Q55724833,"('necked lutes', 'class of musical instruments')",Common_Node
+Q67518233,"('process', 'an occurrent that exists in time by occurring or happening, has temporal parts and always involves and depends on some entity')",Common_Node
+Q55738828,"('single reedpipes with double (or quadruple) reeds', 'class of musical instruments')",Common_Node
+Q3300034,"('painting material', 'painting or drawing equipment that serves as a convey medium for colour')",Common_Node
+Q28732711,"('physical substance', 'substance composed of quantum particle(s)/field(s), such as matter and/or radiation; that of which objects/systems are composed; physical stuff that can be considered concrete (not strictly abstract)')",Common_Node
+Q82794,"('geographic region', '2D or 3D defined space, mainly in terrestrial and astrophysics sciences')",Common_Node
+Q931447,"('electrical load', 'electrical component or portion of a circuit that consumes electric power')",Common_Node
+Q1799072,"('method', 'planned path to reaching an objective')",Common_Node
+Q11348,"('function', 'mathematical binary relation, such that every element of the left set is related with exactly one element of the right set')",Common_Node
+Q336,"('science', 'systematic enterprise that builds and organizes knowledge')",Common_Node
+Q2120578,"('zero-emissions vehicle', 'vehicle that emits no tailpipe pollutants from the onboard source of power')",Common_Node
+Q104602244,"('rug', 'textile floor covering')",Common_Node
+Q1229765,"('watercraft', 'vehicles that are intended for locomotion on or in the water')",Common_Node
+Q27096213,"('geographic entity', 'place or entity that could be a place')",Common_Node
+Q1507442,"('human-powered vehicle', 'human-powered vehicle')",Common_Node
+Q974850,"('missile', 'self-propelled guided weapon system')",Class_Node
+Q2091629,"('magnitude', 'mathematical concept related to comparison and ordering')",Common_Node
+Q54940067,"('serial relation', 'binary relation such that every element of the left set has a corresponding element in the right set')",Common_Node
+Q31464082,"('source', 'object (person, place, text, thing, etc.) from which something (information, goods, etc.) comes or is acquired')",Common_Node
+Q61961344,"('group of physical objects', 'group of physical objects')",Common_Node
+Q3152896,"('reed aerophone', 'class of musical instruments')",Common_Node
+Q1246258,"('artillery gun', 'artillery weapon which fires a projectile using a propellant with greater power than personal firearms')",Common_Node
+Q14915034,"('course', 'specific set of food items that are served together during a meal, all at the same time')",Common_Node
+Q3966,"('computer hardware', 'physical components of a computer')",Common_Node
+Q21369154,"('hairstyle accessory', 'costume accessory worn on or in the hair')",Common_Node
+Q15989253,"('part', 'separate element of a larger (divisible or indivisible) entity')",Common_Node
+Q1914636,"('activity', 'event; actions that result in changes of state')",Common_Node
+Q2095,"('food', 'any substance consumed to provide nutritional support for the body; form of energy stored in chemical')",Common_Node
+Q488383,"('object', 'anything that we can think or talk about; a thing that is observed by a subject')",Common_Node
+Q595658,"('velocipede', 'human-powered land vehicle with one or more wheels')",Common_Node
+Q102074988,"('artificial physical structure', 'human-made system of connected force-bearing elements')",Common_Node
+Q99527517,"('collection entity', 'entity that is a composite of other entities')",Common_Node
+Q16887380,"('group', 'well-defined collection of discrete entities who choose or are assigned to be part of a collective whole')",Common_Node
+Q837718,"('energy storage', 'capture of energy produced at one time for use at a later time')",Common_Node
+Q56761669,"('concentrated solar power', 'technology which uses mirrors or lenses to concentrate a large area of solar energy onto a small area')",Common_Node
+Q2904042,"('bioconstruction', 'structure built by living organisms, by opposition to sedimental process')",Common_Node
+Q19462049,"('directly struck idiophone', 'class of musical instruments')",Common_Node
+Q362200,"('accessory', 'fashionable or decorative accessory to clothes or interior furnishings')",Common_Node
+Q618123,"('geographical feature', 'point; object that can be uniquely identified with geographical data, may be man-made or naturally-created')",Common_Node
+Q35145263,"('natural geographic object', 'geographical object created by natural causes')",Common_Node
+Q29149,"('French_bulldog', 'dog breed')",Class_Node
+Q1521410,"('kitchenware', 'tools, utensils, appliances, dishes, and cookware, that can be used in the process of food preparation, cooking or baking, or the serving of food, or to hold or store food before or after preparation')",Common_Node
+Q27480917,"('Perennial crops (CPA 2008)', 'Perennial crops (CPA 2008)')",Common_Node
+Q102205,"('fluid', 'substance which continuously deforms under an applied shear stress, including liquids and gases')",Common_Node
+Q11460,"('clothing', 'covering worn on the human body')",Common_Node
+Q19588495,"('composite chordophones', 'class of musical instruments')",Common_Node
+Q13226383,"('facility', 'place for doing something')",Common_Node
+Q25265,"('Felidae', 'family of mammals in the order of carnivorans')",Common_Node
+Q23668,"('beer_bottle', 'bottle to contain beer')",Class_Node
+Q7239,"('organism', 'any contiguous alive physical entity; entity or being that is living; an individual living thing, such as one animal, plant, fungus, or bacterium')",Common_Node
+Q811909,"('technological component', 'fundamental component of a machine or a tool, part of the machinery and contributing to the function of the machine, not of the esthetics')",Common_Node
+Q161928,"('footwear', 'garments worn on feet')",Common_Node
+Q32050,"('precision-guided munition', 'guided munition intended to precisely hit a specific target')",Common_Node
+Q98119401,"('group or class of physical objects', 'group or class of physical objects')",Common_Node
+Q11435,"('liquid', 'liquid object')",Common_Node
+Q2184715,"('durable good', 'good that does not quickly wear out')",Common_Node
+Q5639584,"('hairstyling tool', 'hairdressing tool')",Common_Node
+Q156428,"('inflorescence', 'Term used in botany to describe a cluster of flowers')",Common_Node
+Q47011175,"('floor covering', 'decorative or functional cover for permanent flooring')",Common_Node
+Q101401,"('bell', 'sound-making device')",Common_Node
+Q15088658,"('measured value', 'dimension, quantity, or capacity determined by measuring')",Common_Node
+Q340169,"('communication medium', 'storage and delivering agent of information or data')",Common_Node
+Q1211272,"('signage', 'design or use of signs and symbols on physical objects to communicate a message to a particular audience in a particular context')",Common_Node
+Q570116,"('tourist attraction', 'place of interest where tourists visit')",Common_Node
+Q17537576,"('creative work', 'distinct artistic creation such as artwork, literature, music, and paintings')",Common_Node
+Q7184903,"('abstract object', 'object with no physical referents')",Common_Node
+Q5936788,"('human-powered land vehicle', 'land vehicles propelled over ground by human power')",Common_Node
+Q861259,"('painting surface', 'material which forms the surface on which a painting of picture is applicated, for example canvas or paper')",Common_Node
+Q28791169,"('simple fruit', 'a single ripened ovary from a single flower')",Common_Node
+Q57306162,"('plucked necked box lutes', 'plucked necked box lutes')",Common_Node
+Q5113,"('bird', 'class of tetrapods')",Common_Node
+Q39201,"('pet', ""animal kept for companionship and a person's enjoyment"")",Common_Node
+Q7377,"('mammal', 'class of tetrapods')",Common_Node
+Q1639378,"('social system', 'kaung.myat.naing@internet.ru')",Common_Node
+Q485027,"('body armor', 'protective clothing; armor worn on the body')",Common_Node
+Q628858,"('workplace', 'physical location where someone works')",Common_Node
+Q386724,"('work', 'physical or virtual object made by humans')",Common_Node
+Q1798603,"('string instrument', 'musical instrument that generates tones by one or more strings stretched between two points')",Common_Node
+Q3391431,"('bars apparatus', 'parallel and uneven bars in gymnastics')",Common_Node
+Q213441,"('shop', 'place where items or services are sold')",Common_Node
+Q42622779,"('timepiece', 'device for measuring or recording the passage of time')",Common_Node
+Q16889133,"('class', 'collection of items in an ontology sharing common characteristics')",Common_Node
+Q12493,"('dome', 'architectural element that resembles the hollow upper half of a sphere')",Class_Node
+Q18819626,"('connector', 'object used to connect other objects together')",Common_Node
+Q25306,"('Carnivora', 'order of mammals')",Common_Node
+Q53617489,"('independent continuant', 'independent continuant')",Common_Node
+Q191851,"('vase', 'open container, often used to hold cut flowers')",Class_Node
+Q104385260,"('chemical propellant gun', 'projectile weapon which launches a projectile by means of burning propellant in a confined space')",Common_Node
+Q1395006,"('cardboard box', 'box fabricated from cardboard')",Common_Node
+Q17205,"('aircraft_carrier', 'warship primarily designed to carry, support, launch, and recover naval aircraft at sea')",Class_Node
+Q38496,"('boxer', 'dog breed')",Class_Node
+Q140,"('lion', 'species of big cat')",Class_Node
+Q262246,"('sign', 'concept in semiotics or linguistics')",Common_Node
+Q4406616,"('concrete object', 'object with a physical referent')",Common_Node
+Q796635,"('linens', 'fabric household goods intended for daily use')",Common_Node
+Q3769299,"('human behaviour', 'array of every physical action and observable emotion associated with humans')",Common_Node
+Q795052,"('individual', 'person or a specific object')",Common_Node
+Q228039,"('lock', 'mechanical or electronic fastening device')",Common_Node
+Q2453629,"('drinking vessel', 'class of container from which you drink')",Common_Node
+Q19829125,"('absence', '(local) nonexistence of something (specific)')",Common_Node
+Q5280486,"('struck idiophone', 'class of musical instruments')",Common_Node
+Q55182671,"('undersea landform', ""geomorphic features of the earth's surface that are located below the sea"")",Common_Node
+Q2160801,"('skirt', 'type of clothing worn from the waist downwards')",Common_Node
+Q28813620,"('set', 'set of items held singly')",Common_Node
+Q1797813,"('productive animal', 'animal that is used by the people economically')",Common_Node
+Q2995644,"('result', 'final consequence of a sequence of actions or events')",Common_Node
+Q69016679,"('hospital equipment and supplies', 'materials used for providing care in hospital')",Common_Node
+Q4936952,"('anatomical structure', ""entity with a single connected inherent 3D shape that's created by coordinated expression of the organism's own DNA"")",Common_Node
+Q59095968,"('home furnishing', 'design and furnishing of living spaces')",Common_Node
+Q303288,"('solar thermal energy', 'technology for harnessing solar energy for thermal energy')",Common_Node
+Q208322,"('carousel', 'amusement ride consisting of a rotating circular platform with seats for riders')",Class_Node
+Q6657015,"('medical equipment', 'equipment designed to aid in the diagnosis, monitoring or treatment of medical conditions')",Common_Node
+Q58678,"('school_bus', 'type of bus')",Class_Node
+Q629085,"('multivalued function', 'binary relation, which is left-total, but may not be right-unique ; isomorph to another function from the same source set, but to the power set of the codomain of the initial function')",Common_Node
+Q29043258,"('Other fruit and nuts', 'Other fruit and nuts')",Common_Node
+Q7386,"('ant', 'family of insects')",Class_Node
+Q1567371,"('digital media player', 'device used for playing media such as online video.')",Common_Node
+Q27043948,"('material anatomical entity', 'anatomical entity with mass')",Common_Node
+Q28803,"('sandwich', 'two slices of bread with filling in between them')",Common_Node
+Q81103,"('cannon', 'class of artillery which fires at a low or flat trajectory')",Class_Node
+Q1051772,"('chordophone', 'class of musical instruments that makes sound by way of a vibrating string or strings stretched between two points')",Common_Node
+Q1949963,"('statistic', 'single measure of some attribute of a sample')",Common_Node
+Q516776,"('measurable function', 'function between measurable spaces')",Common_Node
+Q19603939,"('building component', 'one of the elements that make up a building')",Common_Node
+Q9158768,"('storage', 'place or device for storing material or immaterial objects')",Common_Node
+Q34379,"('musical instrument', 'sound-producing object used by a musician for this purpose')",Common_Node
+Q246672,"('mathematical object', 'abstract object in mathematics')",Common_Node
+Q28367692,"('cavity', 'empty space within a solid object')",Common_Node
+Q1144661,"('amusement ride', 'mechanical device or structure that moves people to create enjoyment')",Common_Node
+Q173453,"('wind instrument', 'class of musical instruments')",Common_Node
+Q2998482,"('clothing in the ancient world', 'what people wore in antiquity as inferred from archaeological and historical evidence')",Common_Node
+Q596566,"('pencil_box', 'container used to store pencils, pens and writing equipment')",Class_Node
+Q15197056,"('fleshy fruit', 'all of most of the ovary wall (pericarp) is soft or fleshy at maturity')",Common_Node
+Q930933,"('relation', 'general relation between different objects or individuals')",Common_Node
+Q223557,"('physical object', 'singular aggregation of substance(s) such as matter or radiation, with overall properties such as mass, position or momentum')",Common_Node
+Q14745,"('furniture', 'movable objects intended to support various human activities')",Common_Node
+Q177597,"('naval vessel', 'watercraft designed to conduct or support combat operations at sea')",Common_Node
+Q43806,"('Invertebrata', 'group of animals')",Common_Node
+Q65037298,"('optical component', 'component used to affect light in an optical system')",Common_Node
+Q64830866,"('physical interface', 'specific physical means by which two items interact')",Common_Node
+Q468402,"('tile', 'manufactured piece of hard-wearing material')",Common_Node
+Q190403,"('catamaran', 'watercraft with two parallel hulls of equal size')",Class_Node
+Q8205328,"('artificial physical object', 'physical object made or shaped by human hand')",Common_Node
+Q605384,"('crate', 'shipping container')",Class_Node
+Q57812611,"('mammal living in captivity', 'individual mammal')",Common_Node
+Q18593264,"('item of collection or exhibition', 'defines an item, such as an object or document, that is a member of a collection or part of a repository')",Common_Node
+Q15141646,"('data storage', 'hardware or software for recording data')",Common_Node
+Q1554231,"('resource', 'source or supply from which benefit is produced')",Common_Node
+Q622852,"('domesticated animal', 'animal that has been tamed and that lives with humans')",Common_Node
+Q1485500,"('tangible good', 'physical asset which is the subject of trade or could come as an object of trade turnover into consideration')",Common_Node
+Q7556,"('Anatidae', 'family of birds')",Common_Node
+Q1444,"('organ', 'musical keyboard instrument')",Class_Node
+Q133163,"('percussion instrument', 'type of musical instrument that produces a sound by directly hitting it')",Common_Node
+Q5638,"('bus', 'large road vehicle for transporting people')",Common_Node
+Q1483757,"('solar power', 'conversion of energy from sunlight into electricity')",Common_Node
+Q580939,"('commercial vehicle', 'motor vehicle that is designed to transport persons or goods')",Common_Node
+Q16896124,"('bin', 'cavity that contains an entity and distinguishes it from an environment')",Common_Node
+Q322481,"('size', 'magnitude or dimension of a thing; concept abstracted from the process of measuring by comparing a longer to a shorter or vice versa')",Common_Node
+Q581105,"('consumer electronics', 'electronic equipment intended for everyday use, typically in private homes')",Common_Node
+Q1496967,"('territorial entity', ""entity that covers a part of the Earth's surface with specified borders"")",Common_Node
+Q76419950,"('information board', 'Information display')",Common_Node
+Q3245975,"('finished good', 'item that has completed the manufacturing process but have not yet been sold')",Common_Node
+Q42679632,"('theater space', 'room or other structure within a theater or similar performance venue')",Common_Node
+Q66310125,"('nonbiological component', 'nonbiological component')",Common_Node
+Q5099323,"('chime', 'musical instrument')",Class_Node
+Q623270,"('horizontal_bar', ""apparatus used in men's artistic gymnastics"")",Class_Node
+Q1704572,"('continuum', 'material modelled as a continuous mass rather than as discrete particles')",Common_Node
+Q838948,"('work of art', 'aesthetic physical item or artistic creation')",Common_Node
+Q631931,"('decorative arts', 'arts or crafts concerned with the design and manufacture of functional, beautiful objects')",Common_Node
+Q6005984,"('baryonic matter', 'matter consisting of baryons, electrons, or possibly certain other leptons, but not their antiparticles')",Common_Node
+Q1333024,"('personal protective equipment', 'protective clothing or equipment designed to help protect an individual from injury, infection, or other hazards')",Common_Node
+Q517596,"('mechanism', 'device designed to transform input forces and movement into a desired set of output forces and movement')",Common_Node
+Q1756942,"('partial function', 'binary relation whose actual domain may be smaller than its apparent domain')",Common_Node
+Q2425052,"('electrical apparatus', 'apparatus where the main functionality is provided by electricity')",Common_Node
+Q179904,"('hourglass', 'device to measure the passage of time')",Class_Node
+Q78987,"('electric_guitar', 'electrified guitar; fretted stringed instrument with a neck and body that uses a pickup to convert the vibration of its strings into electrical signals')",Class_Node
+Q18668582,"('board', 'art medium')",Common_Node
+Q945148,"('theater_curtain', 'large piece of cloth designed to mask backstage areas of a theater from spectators')",Class_Node
+Q20793164,"('armor', 'protective covering or reinforcement for objects, persons, or animals that is used to prevent damage from direct contact weapons or projectiles, usually in combat')",Common_Node
+Q43460564,"('chemical entity', 'type of material entity')",Common_Node
+Q29651224,"('natural object', 'naturally occurring object in a natural state, without modification by human effort')",Common_Node
+Q7194062,"('flying machine', 'machine that can fly, including aircraft, spacecraft, rocket, missile')",Common_Node
+Q23958946,"('individual entity', 'entity, be it a thing, a person or any other agent, which is identifiable by its determined characteristics, as contrasted to a class whose characteristics may be varying among its instances')",Common_Node
+Q2800000,"('attraction', 'type of tourist attraction')",Common_Node
+Q48628631,"('mixing_bowl', 'type of cooking bakeware for mixing ingredients')",Class_Node
+Q768186,"('sports equipment', 'object used for sport or exercise')",Common_Node
+Q4437984,"('continuous medium', 'continuous medium')",Common_Node
+Q5268834,"('information and communications technology', 'use of integration of telecommunications and computers to access, store, transmit, and manipulate information')",Common_Node
+Q55724840,"('necked box lutes', 'class of musical instruments')",Common_Node
+Q1454986,"('physical system', 'portion of the physical universe chosen for analysis; everything outside the system is known as the environment')",Common_Node
+Q16325263,"('fireplace accessory', 'tool used to manage fires in fireplaces or hearths, often made in sets')",Common_Node
+Q188691,"('spider_web', 'structure created by a spider, generally meant to catch its prey')",Class_Node
+Q735,"('art', 'expressive work intended to be appreciated for its beauty or emotional power; or the process of creating such a work')",Common_Node
+Q1808578,"('lutes', 'class of musical instruments')",Common_Node
+Q267228,"('sound generator', 'a vibrating object which produces a sound; any kind of device made or used for the purpose of generating sound')",Common_Node
+Q58415929,"('spatio-temporal entity', 'thing that can be contained within a region of space-time, or variation of its state in space or time')",Common_Node
+Q216530,"('ashcan', 'container that holds waste')",Class_Node
+Q64418,"('artillery', 'weapon designed to launch projectiles beyond normal infantry weapon range')",Common_Node
+Q188075,"('box', 'container (usually cuboidal) with at least one roughly rectangular cross-section')",Common_Node
+Q851782,"('tableware', 'items used for setting a table and serving food')",Common_Node
+Q56656227,"('animal shelter created by an animal', 'animal shelter created by an animal')",Common_Node
+Q57814795,"('domesticated mammal', 'domesticated mammal')",Common_Node
+Q2897903,"('goods and services', 'outcome of human efforts to meet the wants and needs of people')",Common_Node
+Q210729,"('electrical element', 'ideal, abstract part of an electrical circuit that imparts specific electrical behavior')",Common_Node
+Q6671777,"('structure', 'arrangement and organization of interrelated elements in an object or system, or the object or system so organized')",Common_Node
+Q28728771,"('material substance', 'substance composed (entirely) of any combination of matter and/or antimatter')",Common_Node
+Q61989482,"('bin', 'type of container')",Common_Node
+Q16686022,"('natural physical object', 'natural physical object')",Common_Node
+Q15621286,"('intellectual work', 'work created through human thought and perception, including creative work')",Common_Node
+Q1150070,"('change', 'process, event or action that deviates from the present state')",Common_Node
+Q5082128,"('mobile device', 'small, hand-held computing device')",Common_Node
+Q2041172,"('measuring instrument', 'device for measuring a physical quantity')",Common_Node
+Q206615,"('building material', 'material used for construction purposes')",Common_Node
+Q25519785,"('Artillery weapons', 'Artillery weapons')",Common_Node
+Q20937557,"('series', 'ordered set of similar objects')",Common_Node
+Q144,"('dog', 'domestic animal')",Common_Node
+Q1357761,"('utensil', 'tool to help using something')",Common_Node
+Q811430,"('human-made geographic feature', 'artificial construction meant to remain at a fixed geographic location')",Common_Node
+Q733541,"('consequence', 'imperative or possible inference')",Common_Node
+Q28555911,"('ordinary matter', 'matter composed of protons, neutrons, and/or electrons')",Common_Node
+Q103940464,"('continuant', 'entity that persists, endures, or continues to exist through time while maintaining its identity')",Common_Node
+Q55738960,"('electro-acoustic chordophones', 'class of musical instruments')",Common_Node
+Q2827268,"('gymnastic apparatus', 'device used in the sport of gymnastics')",Common_Node
+Q19279121,"('free-emissions vehicle', 'free-emissions vehicle')",Common_Node
+Q26401003,"('individual animal', 'class for particular creatures')",Common_Node
+Q50414774,"('armor', 'clothing or other covering designed to be worn or carried to protect the body in combat')",Common_Node
+Q15618781,"('wheeled vehicle', 'any vehicle with wheel')",Common_Node
+Q729,"('animal', 'kingdom of multicellular eukaryotic organisms')",Common_Node
+Q746549,"('dish', 'specific food preparation with cooking finished, and ready to eat, or be served')",Common_Node
+Q1420806,"('reel', 'hokey')",Class_Node
+Q42896320,"('reed instrument', 'instrument that produces sound by means of a vibrating reed (including free reeds)')",Common_Node
+Q2741056,"('cabinet', 'box-shaped piece of furniture with doors or drawers for storing miscellaneous items')",Common_Node
+Q28797,"('applied science', 'discipline that applies existing scientific knowledge to develop more practical applications')",Common_Node
+Q30038792,"('percussion idiophones', 'class of musical instruments')",Common_Node
+Q2858615,"('electronic machine', 'electric device where the main functionality is provided by electronic circuits')",Common_Node
+Q79529,"('chemical substance', 'matter of constant composition best characterized by the entities (molecules, formula units, atoms) it is composed of and characterized by physical properties like density')",Common_Node
+Q52954,"('keyboard instrument', 'class of musical instrument which is played using a musical keyboard')",Common_Node
+Q106070281,"('aviation vessel', 'watercraft designed to conduct or assist naval aviation operations')",Common_Node
+Q105738,"('electrophone', 'class of musical instruments')",Common_Node
+Q2133296,"('space (architecture)', 'area within an architectural structure with available space')",Common_Node
+Q11446,"('ship', 'large buoyant watercraft')",Common_Node
+Q80228,"('bottle', 'cylindrical container')",Common_Node
+Q39546,"('tool', 'physical item that can be used to achieve a goal')",Common_Node
+Q13191,"('orange', 'citrus fruit of the orange tree')",Class_Node
+Q131207,"('cosmetics', 'substances used to enhance the appearance or odor of the human body')",Common_Node
+Q25416091,"('substance', 'any composed matter whose origin is either biological, chemical, or mineral')",Common_Node
+Q28845870,"('biological component', 'component of the biological system')",Common_Node
+Q35120,"('entity', 'thing with independent and distinct existence')",Common_Node
+Q2374786,"('combination_lock', 'combination lock')",Class_Node
+Q15303351,"('art material', 'substance, raw ingredient, or tool that is utilized by an artist to create a work of art')",Common_Node
+Q616601,"('trifle', 'dessert')",Class_Node
+Q2267705,"('field of study', 'field of study leading to a specific degree')",Common_Node
+Q1566584,"('hair_slide', 'long pin used to secure the hair')",Class_Node
+Q1047213,"('measurement tool', 'device used to generate a measurement')",Common_Node
+Q33972,"('slot', 'casino gambling machine')",Class_Node
+Q42889517,"('oboe family instrument', 'instrument in the oboe family')",Common_Node
+Q184872,"('recreation', 'activity of leisure')",Common_Node
+Q838312,"('pin', 'fastening device')",Common_Node
+Q18336849,"('item with given name property', '(used to define the domain of the ""given name"" property)')",Common_Node
+Q16529344,"('goose', 'Common name for a group of birds')",Class_Node
+Q10872571,"('portable media player', 'portable device capable of storing and playing digital media such as audio, images, and video files')",Common_Node
+Q61788060,"('human activity', 'activity initiated by a human, intentionally or unintentionally')",Common_Node
+Q21162272,"('means', 'means by which an item performs a function')",Common_Node
+Q451967,"('intentional human action', 'every human activity led by purposeful motives')",Common_Node
+Q23808,"('interface', 'concept of computer science; point of interaction between two things')",Common_Node
+Q57815212,"('domesticated bird', 'domesticated bird')",Common_Node
+Q159810,"('economy', 'area of the production, distribution and trade, as well as consumption of goods and services by different agents')",Common_Node
+Q7493941,"('shelter', 'basic architectural structure or building that provides cover from the elements')",Common_Node
+Q56147060,"('fire-making tool', 'equipment and tools for laying and starting fires')",Common_Node
+Q107679,"('cliff', 'significant vertical, or near vertical, rock exposure')",Class_Node
+Q376,"('clock', 'instrument that measures the passage of time')",Common_Node
+Q7978115,"('weapons platform', 'system or structure that carries weapons')",Common_Node
+Q11661,"('information technology', 'development, management, and use of computer-based information systems')",Common_Node
+Q337060,"('perceptible object', 'entity that is physically perceptible')",Common_Node
+Q268547,"('tile_roof', 'tile designed mainly to keep out rain')",Class_Node
+Q49005,"('curtain', 'cloth used to block out light')",Common_Node
+Q2151621,"('energy industry', 'industries involved in producing, selling, and distributing energy (in all forms, e.g. petroleum, natural gas, coal, peat, firewood, nuclear energy, solar energy, hydroelectic energy, wind energy, geothermal energy)')",Common_Node
+Q106106,"('wardrobe', 'storage cabinet')",Common_Node
+Q1194773,"('projectile weapon', 'weapon designed to discharge projectiles or other material')",Common_Node
+Q1390,"('insect', 'class of arthropods')",Common_Node
+Q12876,"('tank', 'armoured fighting vehicle intended as a primary offensive weapon in front-line ground combat')",Class_Node
+Q208364,"('wok', 'round-bottomed cooking vessel, originating in China')",Class_Node
+Q185785,"('ammunition', 'general term for a wide range of weapon items such as bombs, missiles, mines and projectiles')",Common_Node
+Q12766313,"('geomorphological unit', 'topographic or bathymetric feature in a particular geographic location (eg. hill, river valley, mountain range, etc.)')",Common_Node
+Q184358,"('reef', 'feature lying beneath the surface of the water')",Common_Node
+Q699405,"('residence', 'self-contained unit of accommodation (house, apartment, mobile home, houseboat or other structure) used as a home')",Common_Node
+Q1823435,"('reflector', 'reflective surface used to redirect light towards a given subject or scene, used in photography')",Common_Node
+Q4026292,"('action', 'something an agent can do or perform')",Common_Node
+Q522648,"('clothing in ancient Greece', 'Clothing style in ancient Greece.')",Common_Node
+Q1183543,"('device', 'complex equipment, such as with a motor or powered by electricity or another source of energy that it converts')",Common_Node
+Q864377,"('multiset', 'mathematical set with repetitions allowed')",Common_Node
+Q27043950,"('anatomical entity', ""biological entity that's either member of a species or a unit of its structural organization"")",Common_Node
+Q16686448,"('artificial entity', 'anything created by humans (either material or mental)')",Common_Node
+Q38672,"('dog type', 'broad category of dogs based on form or function')",Common_Node
+Q61954404,"('solar_dish', 'technology used in concentrated solar power stations')",Class_Node
+Q18498,"('Canis lupus', 'species of mammal')",Common_Node
+Q4388799,"('outerwear', 'clothing worn over street dress for warmth and protection')",Common_Node
+Q58778,"('system', 'set of interacting or interdependent components')",Common_Node
+Q230629,"('connection', 'relation that exists between interconnected parts')",Common_Node
+Q748611,"('finger food', 'food to be consumed without utensils')",Common_Node
+Q655686,"('commercial building', 'buildings associated with any aspect of the various activities and business relationships of industry and trade')",Common_Node
+Q178648,"('peripheral', 'hardware device which attaches to a computer and which provided input, output, storage or communication facilities')",Common_Node
+Q14524031,"('protective clothing', 'garments worn for protection against dirt or danger')",Common_Node
+Q468794,"('poncho', 'cape- or blanket-like outer garment')",Class_Node
+Q728,"('weapon', 'tool used to inflict damage or harm')",Common_Node
+Q24060707,"('plant organ', 'part of a plant')",Common_Node
+Q26907166,"('temporal entity', 'thing that can be contained within a period of time, or change in state (e.g. events, periods, acts)')",Common_Node
+Q230823,"('miniskirt', 'Short skirt that usually extends to mid-thigh')",Class_Node
+Q1522115,"('energy source', 'physical or chemical phenomenon from which one can extract energy')",Common_Node
+Q16406,"('tobacco_shop', 'dealer in tobacco')",Class_Node
+Q107425,"('landscape', 'visible features of an area of land')",Common_Node
+Q1087850,"('parabolic reflector', 'reflector / collector that has the shape of a paraboloid')",Common_Node
+Q130368,"('armored fighting vehicle', 'combat vehicle designed with both armament and armored protection')",Common_Node
+Q35145743,"('human-made landform', 'alterations to land created by people')",Common_Node
+Q3114762,"('warship', 'naval ship that is built and primarily intended for naval warfare')",Common_Node
+Q130901,"('binary relation', 'any set of ordered pairs; (on a set A) collection of ordered pairs of elements of A, i.e. subset of A × A; (between two sets A and B) collection of ordered pairs with first element in A and second element in B')",Common_Node
+Q6607,"('guitar', 'fretted string instrument')",Common_Node
+Q391414,"('architectural element', 'forms primarily as components of architecture')",Common_Node
+Q67518978,"('occurrent', 'an entity that unfolds itself in time or it is the instantaneous boundary of such an entity (for example a beginning or an ending), or it is a temporal or spatiotemporal region which such an entity occupies')",Common_Node
+Q13389713,"('snorkel', ""device used for breathing air from above when the wearer's head is face downwards in water"")",Class_Node
+Q55721745,"('sets of bells', 'class of musical instruments')",Common_Node
+Q20011319,"('plant structure', ""entity with a single connected inherent 3D shape that's created by coordinated expression of the plant's own DNA"")",Common_Node
+Q3314483,"('fruit', 'food, edible in the raw state')",Common_Node
+Q268592,"('industry', 'group of companies that produce a closely related set of raw materials, goods, or services')",Common_Node
+Q194428,"('stage', 'designated space for the performance of productions')",Class_Node
+Q9479,"('iPod', 'line of portable media players')",Class_Node
+Q2018526,"('arts', 'human expression and creativity, usually influenced by culture')",Common_Node
+Q182940,"('dessert', 'course that concludes a meal; usually very sweet')",Common_Node
+Q2384798,"('input-output device', 'computer peripheral equipment for input and/or output')",Common_Node
+Q16334298,"('group of living things', 'set of live physical entities of any nature')",Common_Node
+Q18643213,"('military equipment', 'item in use by or designed for use by military forces')",Common_Node
+Q37755,"('Ibizan_hound', 'dog breed')",Class_Node
+Q2127468,"('transport unit', 'group of goods prepared for transport as a single unit')",Common_Node
+Q25324,"('Canidae', 'family of mammals')",Common_Node
+Q27096235,"('artificial geographic entity', 'elements of the ground or the underground that have been greatly modified by human being (roads, houses, ...)')",Common_Node
+Q1422299,"('nutriment', 'the role of some chemicals as energy storage for life, obtained via eating')",Common_Node
+Q55610479,"('ecological unit', 'group of living and dead things, usually geographically linked, studied by ecology')",Common_Node
+Q659216,"('aerophone', 'class of musical instruments')",Common_Node
+Q8148,"('industry', 'economic branch characterized by large scale automated manufacturing as in industrialization')",Common_Node
+Q65138712,"('white_wolf', 'wolf with white fur')",Class_Node
+Q1439598,"('photo equipment', 'whole of the photographic accessories, which is carried by a photographer')",Common_Node
+Q10289,"('barrel', 'hollow cylindrical container')",Class_Node
+Q4198689,"('metrological mechanism', 'metrological mechanism')",Common_Node
+Q1629107,"('file', 'piece of office furniture')",Class_Node
+Q41291,"('rocket', 'pyrokinetic engine used for propulsion; for the incendiary weapon, see Q2037215')",Common_Node
+Q1301433,"('land vehicle', 'vehicle mainly meant to move on land')",Common_Node
+Q1360,"('Arthropoda', 'phylum of animals')",Common_Node
+Q1969455,"('street_sign', 'type of traffic sign used to identify named roads')",Class_Node
+Q1194058,"('disposable product', 'product designed for a single use')",Common_Node
+Q22811462,"('type of manufactured good', 'first-order metaclass')",Common_Node
+Q4393498,"('representation', 'role, function or property of an abstract or real object, relation or changes')",Common_Node
+Q28921572,"('common matter', 'matter, explicitly excluding any antimatter; physical substance containing neither non-matter nor antimatter; koinomatter; common matter')",Common_Node
+Q6667323,"('big cat', 'larger felid species')",Common_Node
+Q2152657,"('double reed instrument', 'class of musical instruments')",Common_Node
+Q184191,"('lipstick', 'cosmetic for coloring the lips')",Class_Node
+Q1174791,"('escarpment', 'type of slope landform')",Common_Node
+Q2424752,"('product', 'result of work that can be offered to a market')",Common_Node
+Q987767,"('container', 'any receptacle for holding a product used in storage, packaging, and shipping')",Common_Node
+Q230262,"('plucked string instrument', 'belong to the group of string instruments')",Common_Node
+Q1370169,"('dishrag', 'cloth used in the kitchen to clean dishes and surfaces')",Class_Node
+Q35758,"('matter', 'substance that has rest mass and volume, or several other definitions')",Common_Node
+Q15710813,"('physical structure', 'body or assemblage of bodies in space that form a system capable of supporting loads')",Common_Node
+Q286583,"('manifestation', 'physical embodiment of an information artifact')",Common_Node
+Q3030569,"('protective device', 'equipment used to provide or improve safety')",Common_Node
+Q5469988,"('formalization', 'automated representation of a system')",Common_Node
+Q47146,"('user interface', 'means by which a user interacts with and controls a machine')",Common_Node
+Q11292,"('coral_reef', 'ridge of rock in the sea formed by the growth and deposit of coral')",Class_Node
+Q960648,"('point of interest', 'specific location that someone may find useful or interesting')",Common_Node
+Q1681365,"('consumables', 'Consumables')",Common_Node
+Q21146257,"('type', 'kind or variety of something')",Common_Node
+Q26037047,"('culinary equipment', 'tool or equipment used in preparing, storing, cooking, or serving food')",Common_Node
+Q7550889,"('combat vehicle', 'self-propelled, weaponized military vehicle used for combat operations')",Common_Node
+Q200764,"('bookshop', 'commercial trader of books')",Class_Node
+Q28877,"('goods', 'tangible and intangible thing, except labor tied services, that satisfies human wants and provides utility')",Common_Node
+Q3749263,"('electrical device', 'machine powered by electricity')",Common_Node
+Q2625603,"('population', 'ensemble of individuals of a species in an area, or their number')",Common_Node
+Q223924,"('unicycle', 'one-wheeled mode of transportation')",Class_Node
+Q203066,"('relation', 'property that assigns truth values to k-tuples of individuals')",Common_Node
+Q327065,"('display device', 'output device for presentation of information in visual form')",Common_Node
+Q15401930,"('product', 'result of some kind of work or effort')",Common_Node
+Q50821977,"('electro-acoustic instruments', 'class of musical instruments')",Common_Node
+Q49416455,"('retail location', 'physical place of the sale of goods or services')",Common_Node
+Q1642862,"('multihull', 'ship type')",Common_Node
+Q17504,"('dalmatian', 'dog breed')",Class_Node
+Q2221906,"('geographic location', ""point or an area on the Earth's surface or elsewhere"")",Common_Node
+Q11019,"('machine', 'tool containing one or more parts that uses energy to perform an intended action')",Common_Node
+Q83180,"('roof', 'top covering of a building')",Common_Node
+Q3773693,"('kitchen utensil', 'small hand-held tool used for food preparation')",Common_Node
+Q56052926,"('building division', 'element developed originally or primarily as portions of architecture, often adapted to other habitable spaces, such as in large vehicles, and often borrowed or imitated for structural or decorative use on other objects')",Common_Node
+Q1105339,"('cocktail_shaker', 'device used to mix alcoholic beverages')",Class_Node
+Q38904,"('miniature_poodle', 'group of dog breeds originating from continental Western Europe')",Class_Node
+Q21206,"('malamute', 'dog breed')",Class_Node
+Q147398,"('ear', 'grain-bearing tip part of the stem of a cereal plant')",Class_Node
+Q3955017,"('intermediate good', 'partly finished goods, used as inputs in producing other goods')",Common_Node
+Q153988,"('bowl', 'round, open-top container frequently used as tableware')",Common_Node
+Q11016,"('technology', 'making, modification, usage, and knowledge of tools, machines, techniques, crafts, systems, and methods of organization')",Common_Node
+Q837515,"('solar collector', 'device that collects heat')",Common_Node
+Q80083,"('humanities', 'academic disciplines that study human culture')",Common_Node
+Q4202245,"('alternative energy', 'energy source that is an alternative to fossil fuel')",Common_Node
+Q38686,"('golden_retriever', 'dog breed')",Class_Node
+Q17334923,"('location', 'location of physical or non-physical object in space')",Common_Node
+Q1065579,"('costume accessory', ""item which is used to contribute to the wearer's outfit"")",Common_Node
+Q7406919,"('service', 'activity that directly satisfies wants without producing a lasting asset')",Common_Node
+Q53617407,"('material entity', 'material entity')",Common_Node
+Q2574750,"('citrus fruit', 'fruit from any variety of citrus tree')",Common_Node
+Q2957687,"('meat pastry', 'meat pastry')",Common_Node
+Q1190554,"('occurrence', 'occurrence of a fact or object in space-time; instantiation of a property in an object')",Common_Node
+Q104637332,"('planned process', 'process that successfully actualizes a plan')",Common_Node
+Q31808206,"('covering', 'furnishing, often of textile material, made to overlay an object for protection or decoration')",Common_Node
+Q25403900,"('food ingredient', 'ingredient used in food product')",Common_Node
+Q181247,"('woodwind instrument', 'family of musical wind instruments')",Common_Node
+Q42889,"('vehicle', 'mobile machine that transports people, animals or cargo')",Common_Node
+Q41415,"('soup', 'primarily liquid food')",Common_Node
+Q2695280,"('technique', 'sum of techniques, skills, methods, and processes used in the production of goods or services or in the accomplishment of objectives, such as scientific investigation')",Common_Node
+Q193395,"('recording medium', 'physical storage medium for recording information')",Common_Node
+Q1371954,"('etui', 'small case, usually ornamental, meant to contain personal articles, such as bodkins and toothpicks')",Common_Node
+Q1429336,"('hesperidium', 'berry with a leathery rind and parchment-like partitions between sections')",Common_Node
+Q937228,"('property', 'predominant feature that characterizes a being, a thing, a phenomenon, etc. and which differentiates one being from another, one thing from another')",Common_Node
+Q1364,"('fruit', 'part of a flowering plant')",Common_Node
+Q39253,"('Podenco', 'dog type')",Common_Node
+Q55721729,"('percussion vessels', 'class of musical instruments')",Common_Node
+Q1137441,"('yawl', 'two-masted sailing craft similar to a sloop or cutter')",Class_Node
+Q214609,"('material', 'substance that can occur in different amounts, all with some similar [mixture of some] characteristics, and of which objects can be made up')",Common_Node
+Q58416391,"('spatial entity', 'thing occupying some space, entity that can be contained within a region of space')",Common_Node
+Q41176,"('building', 'structure, typically with a roof and walls, standing more or less permanently in one place')",Common_Node
+Q16869178,"('trousse', 'case for small implements')",Common_Node
+Q2457980,"('clothing in ancient Rome', 'Clothing style in ancient Rome.')",Common_Node
+Q811979,"('architectural structure', 'human-designed and -made structure')",Common_Node
+Q1310239,"('component', 'smaller, self-contained part of technical entity consisting of components')",Common_Node
+Q22676,"('shoe', 'footwear')",Common_Node
+Q55738860,"('single oboes with conical bore', 'class of musical instruments')",Common_Node
+Q16798631,"('equipment', 'collective term for all items that are required to exercise a certain activity')",Common_Node
+Q50380212,"('floating object', 'object that floats')",Common_Node
+Q1836700,"('manufactured good', 'object produced by the industry')",Common_Node
+Q9332,"('behavior', 'way that one acts in different situations')",Common_Node
+Q127666,"('frying_pan', 'Flat bottomed pan for cooking food on a stove')",Class_Node
+Q30038759,"('handle lutes', 'class of musical instruments')",Common_Node
+Q207822,"('packaging and labeling', 'enclosure or protection of products for distribution, storage, and sale')",Common_Node
+Q20463,"('garbage_truck', 'truck specially designed to collect small quantities of waste and haul the collected waste to a solid waste treatment facility')",Class_Node
+Q271669,"('landform', 'geomorphological unit in the Earth sciences')",Common_Node
+Q182731,"('cuirass', 'type of armor')",Class_Node
+Q3249551,"('process', 'series of events which occur over an extended period of time')",Common_Node
+Q956956,"('prayer_rug', 'prayer rug')",Class_Node
+Q839546,"('machine element', 'elementary component of a machine')",Common_Node
+Q31807746,"('furnishing', 'works that facilitate human activity and to provide for physical needs of people in or around a building generally by offering comfort, convenience, or protection')",Common_Node
+Q57812559,"('animal living in captivity', 'animal living in captivity')",Common_Node
+Q1299240,"('interior space', 'space inside')",Common_Node
+Q2912517,"('value', 'notion in mathematics')",Common_Node
+Q170483,"('sailing ship', 'large wind-powered water vessel')",Common_Node
