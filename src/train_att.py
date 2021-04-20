@@ -7,6 +7,8 @@ import warnings
 import collections
 import pickle
 from datetime import datetime
+from sklearn.metrics.pairwise import cosine_similarity
+
 
 import numpy as np
 import torch
@@ -23,25 +25,28 @@ from utils import configuration, miscellaneous
 from numpy import linalg as LA
 from scipy.stats import mode
 from graph import Graph
+from sentence_transformers import SentenceTransformer
 
 import datasets
 import models
 
 best_prec1 = -1
-
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 def main():
     global args, best_prec1, device
     args = configuration.parser_args()
 
-
+    
     if not os.path.exists(args.save_path):
-        os.makedirs(args.save_path)
+        if args.log_info and not args.debug:
+            os.makedirs(args.save_path)
 
     if args.model_dir is None:
         args.model_dir = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         args.save_path = f'{args.save_path}/{args.model_dir}'
-        os.makedirs(args.save_path)
+        if args.log_info and not args.debug:
+            os.makedirs(args.save_path)
     else:
         args.save_path = f'{args.save_path}/{args.model_dir}'
 
@@ -61,10 +66,14 @@ def main():
     # select GPU device
     device = torch.device(f'cuda:{args.gpu}')
 
+
+    # load sentence transformer
+    sentence_transformer = SentenceTransformer('stsb-roberta-large')
+
     # load knowledge graph
     knowledge_graph = Graph()
     classFile_to_superclasses, superclassID_to_wikiID =\
-        knowledge_graph.class_file_to_superclasses(1, [1])
+        knowledge_graph.class_file_to_superclasses(1, [1], sentence_transformer, args.gpu)
 
     # create model
     if args.log_info and not args.debug:
@@ -72,7 +81,7 @@ def main():
         result_log.info("=> creating model '{}'".format(args.arch))
     # if args.debug:
     #     import ipdb; ipdb.set_trace()
-    model = models.__dict__[args.arch](num_classes=args.num_classes, num_spclasses=len(superclassID_to_wikiID), top_k=args.top_k)
+    model = models.__dict__[args.arch](num_classes=args.num_classes, sp_embedding_feature_dim = 1024, pool_type=args.pool_type, top_k=args.top_k)
 
     if args.log_info and not args.debug:
         log.info('Number of model parameters: {}'.format(sum([p.data.nelement() for p in model.parameters()])))
@@ -80,6 +89,8 @@ def main():
 
     # model = torch.nn.DataParallel(model).to(device)
     model = model.to(device)
+
+
 
     # define loss function (criterion) and optimizer
     criterion = loss_fn()
@@ -142,6 +153,9 @@ def main():
     else:
         train_loader = get_dataloader('train', used_files, not args.disable_train_augment, shuffle=True, spclasses_dict=classFile_to_superclasses)
 
+    # if args.debug:
+    #     import ipdb; ipdb.set_trace()
+
     sample_info = [args.meta_val_iter, args.meta_val_way, args.meta_val_shot, args.meta_val_query] # 5-way 1-shot 15 val quereis
     val_loader = get_dataloader('val', used_files, False, sample=sample_info, spclasses_dict=classFile_to_superclasses)
 
@@ -155,7 +169,10 @@ def main():
         is_best = False
         if (epoch + 1) % args.meta_val_interval == 0:
             prec1 = meta_val(val_loader, model)
-            log.info('Meta Val {}: {}'.format(epoch, prec1))
+            if args.log_info and not args.debug:
+                log.info('Meta Val {}: {}'.format(epoch, prec1))
+            else:
+                print('Meta Val {}: {}'.format(epoch, prec1))
             is_best = prec1 > best_prec1
             best_prec1 = max(prec1, best_prec1)
             if not args.disable_tqdm:
@@ -216,7 +233,7 @@ def meta_val(test_loader, model, train_mean=None):
             inputs = inputs.to(device, non_blocking=True)
             target = target.to(device, non_blocking=True)
             sp_target = sp_target.to(device, non_blocking=True)
-            output, _, sp_output, _ = model(inputs)
+            output, _, _, sp_output = model(inputs)
             if train_mean is not None:
                 output = output - train_mean
 
@@ -247,6 +264,8 @@ def train(train_loader, model, criterion, optimizer, epoch, scheduler, log):
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
+    cel_losses = AverageMeter()
+    sp_losses = AverageMeter()
     top1 = AverageMeter()
     top5 = AverageMeter()
 
@@ -289,10 +308,15 @@ def train(train_loader, model, criterion, optimizer, epoch, scheduler, log):
                 query_proto = output[args.meta_train_shot * args.meta_train_way:]
                 shot_proto = shot_proto.reshape(args.meta_train_way, args.meta_train_shot, -1).mean(1)
                 output = -get_metric(args.meta_train_metric)(shot_proto, query_proto)
-            loss = criterion(output, target, sp_output, sp_target)
+            cel_loss, sp_loss, loss = criterion(output, target, sp_output, sp_target)
+
+        if args.debug:
+            import ipdb; ipdb.set_trace()
 
         # measure accuracy and record loss
         losses.update(loss.item(), input.size(0))
+        cel_losses.update(cel_loss.item(), input.size(0))
+        sp_losses.update(sp_loss.item(), input.size(0))
 
         # compute gradient and do SGD step
         optimizer.zero_grad()
@@ -309,14 +333,30 @@ def train(train_loader, model, criterion, optimizer, epoch, scheduler, log):
         end = time.time()
 
         if i % args.print_freq == 0:
-            log.info('Epoch: [{:2d}][{:3d}/{:3d}]\t'
-                     'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                     'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
-                     'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                     'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
-                     'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
-                epoch, i, len(train_loader), batch_time=batch_time,
-                data_time=data_time, loss=losses, top1=top1, top5=top5))
+            if args.log_info and not args.debug:
+                log.info('Epoch: [{:2d}][{:3d}/{:3d}]\t'
+                        'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+                        'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
+                        'CEL Loss {cel_loss.val:.4f} ({cel_loss.avg:.4f})\t'
+                        'SP Loss {sp_loss.val:.4f} ({sp_loss.avg:.4f})\t'
+                        'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                        'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
+                        'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
+                    epoch, i, len(train_loader), batch_time=batch_time,
+                    data_time=data_time, cel_loss=cel_losses, sp_loss=sp_losses,
+                    loss=losses, top1=top1, top5=top5))
+            else:
+                print('Epoch: [{:2d}][{:3d}/{:3d}]\t'
+                        'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+                        'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
+                        'CEL Loss {cel_loss.val:.4f} ({cel_loss.avg:.4f})\t'
+                        'SP Loss {sp_loss.val:.4f} ({sp_loss.avg:.4f})\t'
+                        'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                        'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
+                        'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
+                    epoch, i, len(train_loader), batch_time=batch_time,
+                    data_time=data_time, cel_loss=cel_losses, sp_loss=sp_losses,
+                    loss=losses, top1=top1, top5=top5))
 
 
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar', folder='result/default'):
@@ -452,7 +492,9 @@ def extract_feature(train_loader, val_loader, model, tag='last'):
 
         output_dict = collections.defaultdict(list)
         fc_output_dict = collections.defaultdict(list)
-        for i, (inputs, labels, _) in enumerate(warp_tqdm(val_loader)):
+        sp_ground_truth_dict = {}
+
+        for i, (inputs, labels, sp_ground_truth_features) in enumerate(warp_tqdm(val_loader)):
             # compute output
             inputs = inputs.to(device)
             outputs, fc_outputs, sp_outputs, _ = model(inputs)
@@ -462,11 +504,29 @@ def extract_feature(train_loader, val_loader, model, tag='last'):
                 fc_outputs = fc_outputs.cpu().data.numpy()
             else:
                 fc_outputs = [None] * outputs.shape[0]
-            for out, sp_out, fc_out, label in zip(outputs, sp_outputs, fc_outputs, labels):
+            for out, sp_out, fc_out, sp_ground_truth_feature, label in zip(outputs, sp_outputs, fc_outputs, sp_ground_truth_features, labels):
                 output_dict[label.item()].append([out, sp_out])
                 fc_output_dict[label.item()].append(fc_out)
+
+                if label.item() not in sp_ground_truth_dict.keys():
+                    sp_ground_truth_dict[label.item()] = sp_ground_truth_feature
+
+
+        # for i, (inputs, labels, _) in enumerate(warp_tqdm(val_loader)):
+        #     # compute output
+        #     inputs = inputs.to(device)
+        #     outputs, fc_outputs, sp_outputs, _ = model(inputs)
+        #     outputs = outputs.cpu().data.numpy()
+        #     sp_outputs = sp_outputs.cpu().data.numpy()
+        #     if fc_outputs is not None:
+        #         fc_outputs = fc_outputs.cpu().data.numpy()
+        #     else:
+        #         fc_outputs = [None] * outputs.shape[0]
+        #     for out, sp_out, fc_out, label in zip(outputs, sp_outputs, fc_outputs, labels):
+        #         output_dict[label.item()].append([out, sp_out])
+        #         fc_output_dict[label.item()].append(fc_out)
         # output_dict = np.asarray(output_dict)
-        all_info = [out_mean, sp_out_mean, fc_out_mean, output_dict, fc_output_dict]
+        all_info = [out_mean, sp_out_mean, fc_out_mean, output_dict, fc_output_dict, sp_ground_truth_dict]
         save_pickle(save_dir + '/output.plk', all_info)
         return all_info
 
@@ -478,8 +538,7 @@ def get_dataloader(split, used_files, aug=False, shuffle=True, out_name=False, s
     else:
         transform = datasets.without_augment(84, enlarge=args.enlarge)
     sets = datasets.DatasetFolder(args.data, args.split_dir, split, used_files, transform, out_name=out_name, spclasses_dict=spclasses_dict)
-    # if args.debug:
-    #     import ipdb; ipdb.set_trace()
+
     if sample is not None:
         sampler = datasets.CategoriesSampler(sets.labels, *sample)
         loader = torch.utils.data.DataLoader(sets, batch_sampler=sampler,
@@ -531,20 +590,20 @@ def compute_confidence_interval(data):
     return m, pm
 
 
-def meta_evaluate(data, train_mean, sp_train_mean, shot):
+def meta_evaluate(data, train_mean, sp_train_mean, sp_ground_truth_dict, shot):
     un_list = []
     l2n_list = []
     cl2n_list = []
     for _ in warp_tqdm(range(args.meta_test_iter)):
         train_data, test_data, sp_train_data, sp_test_data, train_label, test_label = sample_case(data, shot)
         acc = metric_class_type(train_data, test_data, sp_train_data, sp_test_data, train_label, test_label, shot,
-                                train_mean=train_mean, sp_train_mean=sp_train_mean, norm_type='CL2N')
+                                train_mean=train_mean, sp_train_mean=sp_train_mean, sp_ground_truth_dict = sp_ground_truth_dict, norm_type='CL2N')
         cl2n_list.append(acc)
         acc = metric_class_type(train_data, test_data, sp_train_data, sp_test_data, train_label, test_label, shot,
-                                train_mean=train_mean, sp_train_mean=sp_train_mean, norm_type='L2N')
+                                train_mean=train_mean, sp_train_mean=sp_train_mean, sp_ground_truth_dict = sp_ground_truth_dict, norm_type='L2N')
         l2n_list.append(acc)
         acc = metric_class_type(train_data, test_data, sp_train_data, sp_test_data, train_label, test_label, shot,
-                                train_mean=train_mean, sp_train_mean=sp_train_mean, norm_type='UN')
+                                train_mean=train_mean, sp_train_mean=sp_train_mean, sp_ground_truth_dict = sp_ground_truth_dict, norm_type='UN')
         un_list.append(acc)
     un_mean, un_conf = compute_confidence_interval(un_list)
     l2n_mean, l2n_conf = compute_confidence_interval(l2n_list)
@@ -552,41 +611,63 @@ def meta_evaluate(data, train_mean, sp_train_mean, shot):
     return un_mean, un_conf, l2n_mean, l2n_conf, cl2n_mean, cl2n_conf
 
 
-def metric_class_type(gallery, query, sp_gallery, sp_query, train_label, test_label, shot, train_mean=None, sp_train_mean=None, norm_type='CL2N'):
+def metric_class_type(gallery, query, sp_gallery, sp_query, train_label, test_label, shot, train_mean=None, sp_train_mean=None, sp_ground_truth_dict = None, norm_type='CL2N'):
     if norm_type == 'CL2N':
         gallery = gallery - train_mean
         gallery = gallery / LA.norm(gallery, 2, 1)[:, None]
         query = query - train_mean
         query = query / LA.norm(query, 2, 1)[:, None]
 
-        sp_gallery = sp_gallery - sp_train_mean
-        sp_gallery = sp_gallery / LA.norm(sp_gallery, 2, 1)[:, None]
-        sp_query = sp_query - sp_train_mean
-        sp_query = sp_query / LA.norm(sp_query, 2, 1)[:, None]
+        # sp_gallery = sp_gallery - sp_train_mean
+        # sp_gallery = sp_gallery / LA.norm(sp_gallery, 2, 1)[:, None]
+        # sp_query = sp_query - sp_train_mean
+        # sp_query = sp_query / LA.norm(sp_query, 2, 1)[:, None]
 
 
     elif norm_type == 'L2N':
         gallery = gallery / LA.norm(gallery, 2, 1)[:, None]
         query = query / LA.norm(query, 2, 1)[:, None]
 
-        sp_gallery = sp_gallery / LA.norm(sp_gallery, 2, 1)[:, None]
-        sp_query = sp_query / LA.norm(sp_query, 2, 1)[:, None]
+        # sp_gallery = sp_gallery / LA.norm(sp_gallery, 2, 1)[:, None]
+        # sp_query = sp_query / LA.norm(sp_query, 2, 1)[:, None]
 
     gallery = gallery.reshape(args.meta_val_way, shot, gallery.shape[-1]).mean(1)
-    sp_gallery = sp_gallery.reshape(args.meta_val_way, shot, sp_gallery.shape[-1]).mean(1)
+    # sp_gallery = sp_gallery.reshape(args.meta_val_way, shot, sp_gallery.shape[-1]).mean(1)
+
+
+    sp_gallery = np.zeros((args.meta_val_way, 1024))
+    for i, l in enumerate(list(dict.fromkeys(train_label))):
+        sp_gallery[i] = sp_ground_truth_dict[l].numpy()
+
     train_label = train_label[::shot]
     subtract = gallery[:, None, :] - query
-    sp_subtract = sp_gallery[:, None, :] - sp_query
 
 
-    # if args.debug:
-    #     import ipdb; ipdb.set_trace()
+    # distance = LA.norm(subtract, 2, axis=-1)
+    # sp_distance = LA.norm(sp_subtract, 2, axis=-1)
+
+    # combo_distance = args.loss_alpha * distance + args.loss_beta * sp_distance
+
+    # idx = np.argpartition(combo_distance, args.num_NN, axis=0)[:args.num_NN]
+    # nearest_samples = np.take(train_label, idx)
+    # out = mode(nearest_samples, axis=0)[0]
+    # out = out.astype(int)
+    # test_label = np.array(test_label)
+    # acc = (out == test_label).mean()
+
     distance = LA.norm(subtract, 2, axis=-1)
-    sp_distance = LA.norm(sp_subtract, 2, axis=-1)
+    sp_distance = cosine_similarity(sp_gallery, sp_query)
 
-    combo_distance = args.loss_alpha * distance + args.loss_beta * sp_distance
+    sp_idx = np.argpartition(sp_distance, 3, axis=0)[:3]
 
-    idx = np.argpartition(combo_distance, args.num_NN, axis=0)[:args.num_NN]
+
+    restricted_distance = np.ones(distance.shape) * 100
+    for i in range(sp_idx.shape[1]):                                                                                                                                                                             
+            restricted_distance[sp_idx[:,i],i] = distance[sp_idx[:,i],i] 
+
+    # combo_distance = args.loss_alpha * distance
+
+    idx = np.argpartition(restricted_distance, args.num_NN, axis=0)[:args.num_NN]
     nearest_samples = np.take(train_label, idx)
     out = mode(nearest_samples, axis=0)[0]
     out = out.astype(int)
@@ -627,38 +708,63 @@ def do_extract_and_evaluate(model, log, classFile_to_superclasses, used_files):
     train_loader = get_dataloader('train', used_files, aug=False, shuffle=False, out_name=False, spclasses_dict=classFile_to_superclasses)
     val_loader = get_dataloader('test', used_files, aug=False, shuffle=False, out_name=False, spclasses_dict=classFile_to_superclasses)
     load_checkpoint(model, 'last')
-    out_mean, sp_out_mean, fc_out_mean, out_dict, fc_out_dict = extract_feature(train_loader, val_loader, model, 'last')
-    accuracy_info_shot1 = meta_evaluate(out_dict, out_mean, sp_out_mean, 1)
-    accuracy_info_shot5 = meta_evaluate(out_dict, out_mean, sp_out_mean, 5)
-    log.info(
+    out_mean, sp_out_mean, fc_out_mean, out_dict, fc_out_dict, sp_ground_truth_dict = extract_feature(train_loader, val_loader, model, 'last')
+    accuracy_info_shot1 = meta_evaluate(out_dict, out_mean, sp_out_mean, sp_ground_truth_dict, 1)
+    accuracy_info_shot5 = meta_evaluate(out_dict, out_mean, sp_out_mean, sp_ground_truth_dict, 5)
+
+    if args.log_info and not args.debug:
+        log.info(
+            'Meta Test: LAST\nfeature\tUN\tL2N\tCL2N\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})'.format(
+                'GVP 1Shot', *accuracy_info_shot1, 'GVP_5Shot', *accuracy_info_shot5))
+    else:
+        print(
         'Meta Test: LAST\nfeature\tUN\tL2N\tCL2N\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})'.format(
             'GVP 1Shot', *accuracy_info_shot1, 'GVP_5Shot', *accuracy_info_shot5))
+
+
     if args.eval_fc:
         accuracy_info = meta_evaluate(fc_out_dict, fc_out_mean, 1)
-        print('{}\t{:.4f}\t{:.4f}\t{:.4f}'.format('Logits', *accuracy_info))
-        log.info('{}\t{:.4f}\t{:.4f}\t{:.4f}'.format('Logits', *accuracy_info))
+        if args.log_info and not args.debug:
+            log.info('{}\t{:.4f}\t{:.4f}\t{:.4f}'.format('Logits', *accuracy_info))
+        else:
+            print('{}\t{:.4f}\t{:.4f}\t{:.4f}'.format('Logits', *accuracy_info))
+
     load_checkpoint(model, 'best')
-    out_mean, sp_out_mean, fc_out_mean, out_dict, fc_out_dict = extract_feature(train_loader, val_loader, model, 'best')
-    accuracy_info_shot1 = meta_evaluate(out_dict, out_mean, sp_out_mean, 1)
-    accuracy_info_shot5 = meta_evaluate(out_dict, out_mean, sp_out_mean, 5)
-    log.info(
+    out_mean, sp_out_mean, fc_out_mean, out_dict, fc_out_dict, sp_ground_truth_dict = extract_feature(train_loader, val_loader, model, 'best')
+    accuracy_info_shot1 = meta_evaluate(out_dict, out_mean, sp_out_mean, sp_ground_truth_dict, 1)
+    accuracy_info_shot5 = meta_evaluate(out_dict, out_mean, sp_out_mean, sp_ground_truth_dict, 5)
+
+    if args.log_info and not args.debug:
+        log.info(
+            'Meta Test: BEST\nfeature\tUN\tL2N\tCL2N\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})'.format(
+                'GVP 1Shot', *accuracy_info_shot1, 'GVP_5Shot', *accuracy_info_shot5))
+    else:
+        print(
         'Meta Test: BEST\nfeature\tUN\tL2N\tCL2N\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})'.format(
             'GVP 1Shot', *accuracy_info_shot1, 'GVP_5Shot', *accuracy_info_shot5))
+
+
     if args.eval_fc:
         accuracy_info = meta_evaluate(fc_out_dict, fc_out_mean, 1)
-        print('{}\t{:.4f}\t{:.4f}\t{:.4f}'.format('Logits', *accuracy_info))
-        log.info('{}\t{:.4f}\t{:.4f}\t{:.4f}'.format('Logits', *accuracy_info))
+        
+        if args.log_info and not args.debug:
+            log.info('{}\t{:.4f}\t{:.4f}\t{:.4f}'.format('Logits', *accuracy_info))
+        else:
+            print('{}\t{:.4f}\t{:.4f}\t{:.4f}'.format('Logits', *accuracy_info))
 
 
 def loss_fn():
 
-    def _loss_fn(class_outputs, labels, sp_outputs, sp_labels):
-        BCE_loss = F.binary_cross_entropy_with_logits(sp_outputs, sp_labels)
+    def _loss_fn(class_outputs, labels, sp_outputs, sp_embeddings):
+        # BCE_loss = F.binary_cross_entropy_with_logits(sp_outputs, sp_labels)
+        # SP_loss = torch.sum((sp_outputs-sp_embeddings).pow(2), dim=1).pow(0.5)
+        cos = torch.nn.CosineSimilarity(dim=1, eps=1e-8)
+        SP_loss = torch.mean(1 - cos(sp_outputs, sp_embeddings).abs())
         CEL_loss = F.cross_entropy(class_outputs, labels)
         
-        combo_loss = CEL_loss * args.loss_alpha + BCE_loss * args.loss_beta
+        combo_loss = CEL_loss * args.loss_alpha + SP_loss * args.loss_beta
 
-        return combo_loss
+        return CEL_loss, SP_loss, combo_loss
 
     return _loss_fn
 

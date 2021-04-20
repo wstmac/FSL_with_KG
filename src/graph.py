@@ -103,7 +103,7 @@ class Graph():
         return result
 
 
-    def class_file_to_superclasses(self, nHops, rels):
+    def class_file_to_superclasses(self, nHops, rels, model, device):
         """Generate super class for each class in dataset.
         For each class, it will have multiple super-classes.
         So the task should be multi-label classification task.
@@ -135,29 +135,29 @@ class Graph():
             # ------------------------------- #
             # Version 3
             # ------------------------------- #
-            # superclass_descs = ''
-            # for v in value:
-            #     _, (_, desc) = self.get_node_info_by_index(v)
-            #     superclass_descs = superclass_descs + ' ' + desc
+            superclass_descs = ''
+            for v in value:
+                _, (_, desc) = self.get_node_info_by_index(v)
+                superclass_descs = superclass_descs + ' ' + desc
 
-            # #embed descriptions 
-            # sp_desc_embedding = model.encode(superclass_descs, device=f'cuda:{device}')
+            #embed descriptions 
+            sp_desc_embedding = model.encode(superclass_descs, device=f'cuda:{device}')
 
-            # classFile_to_superclasses[classFile] = sp_desc_embedding            
+            classFile_to_superclasses[classFile] = sp_desc_embedding            
 
 
             # ------------------------------- #
             # version 1 and 2
             # ------------------------------- #
-            superclass_indexs = []
-            for v in value:
-                superclass_indexs.append(superclass_sorted_list.index(v))
+            # superclass_indexs = []
+            # for v in value:
+            #     superclass_indexs.append(superclass_sorted_list.index(v))
 
-            #convert to multi-hot 
-            sp_multi_hot = np.zeros(len(superclass_sorted_list), dtype=np.float32)
-            sp_multi_hot[superclass_indexs] = 1
+            # #convert to multi-hot 
+            # sp_multi_hot = np.zeros(len(superclass_sorted_list), dtype=np.float32)
+            # sp_multi_hot[superclass_indexs] = 1
 
-            classFile_to_superclasses[classFile] = sp_multi_hot
+            # classFile_to_superclasses[classFile] = sp_multi_hot
 
 
         superclassID_to_wikiID = {}

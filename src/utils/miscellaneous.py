@@ -17,11 +17,11 @@ EPSILON = 1e-8
 # ------------------------------- #
 # Other Functions
 # ------------------------------- #
-def get_wikiID_to_classFile():
+def get_wikiID_to_classFile(file_path=MINI_CLASSES_PATH):
     """wikiID to classFile (e.g: 'Q140': 'n02129165')"""
 
     wikiID_to_classFile = {}
-    with open(MINI_CLASSES_PATH, 'r') as f:
+    with open(file_path, 'r') as f:
         lines = f.readlines()
         for line in lines:
             if len(line.split(' ')) == 2:
@@ -32,11 +32,11 @@ def get_wikiID_to_classFile():
     return wikiID_to_classFile
 
 
-def get_classFile_to_wikiID():
+def get_classFile_to_wikiID(file_path=MINI_CLASSES_PATH):
     """classFile to wikiID (e.g: 'n02129165': 'Q140')"""
 
     classFile_to_wikiID = {}
-    with open(MINI_CLASSES_PATH, 'r') as f:
+    with open(file_path, 'r') as f:
         lines = f.readlines()
         for line in lines:
             if len(line.split(' ')) == 2:

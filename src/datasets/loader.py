@@ -1,5 +1,5 @@
 import os
-
+import torch
 import PIL.Image as Image
 import numpy as np
 
@@ -44,6 +44,9 @@ class DatasetFolder(object):
             # get super label
             class_file = self.data[index][:9]
             sp_label = self.class_file_to_superclasses[class_file]
+            sp_label = torch.tensor(sp_label)
+
+            # import ipdb; ipdb.set_trace()
 
             return img, label, sp_label
         else:

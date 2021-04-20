@@ -18,9 +18,12 @@ import torch.utils.data
 import torch.utils.data.distributed
 from torch.optim.lr_scheduler import MultiStepLR, StepLR, CosineAnnealingLR
 import tqdm
-from utils import configuration
+from utils import configuration, miscellaneous
 from numpy import linalg as LA
 from scipy.stats import mode
+from graph import Graph
+from datetime import datetime
+from sentence_transformers import SentenceTransformer
 
 import datasets
 import models
@@ -31,11 +34,25 @@ best_prec1 = -1
 def main():
     global args, best_prec1, device
     args = configuration.parser_args()
-    # import ipdb; ipdb.set_trace()
-    ### initial logger
-    log = setup_logger(args.save_path + '/training.log')
-    for key, value in sorted(vars(args).items()):
-        log.info(str(key) + ': ' + str(value))
+
+
+    if not os.path.exists(args.save_path):
+        os.makedirs(args.save_path)
+
+    if args.model_dir is None:
+        args.model_dir = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        args.save_path = f'{args.save_path}/{args.model_dir}'
+        os.makedirs(args.save_path)
+    else:
+        args.save_path = f'{args.save_path}/{args.model_dir}'
+
+    log = setup_logger('train_log', args.save_path + '/training.log')
+    result_log = setup_logger('result_log', args.save_path + '/result.log', display=True)
+
+    if args.log_info and not args.debug:
+        for key, value in sorted(vars(args).items()):
+            log.info(str(key) + ': ' + str(value))
+            result_log.info(str(key) + ': ' + str(value))
 
     if args.seed is not None:
         random.seed(args.seed)
@@ -45,11 +62,23 @@ def main():
     # select GPU device
     device = torch.device(f'cuda:{args.gpu}')
 
+    # # load sentence transformer
+    # sentence_transformer = SentenceTransformer('stsb-roberta-large')
+
+    # # load knowledge graph
+    # knowledge_graph = Graph()
+    # classFile_to_superclasses, superclassID_to_wikiID =\
+    #     knowledge_graph.class_file_to_superclasses(1, [1], sentence_transformer, args.gpu)
+
     # create model
-    log.info("=> creating model '{}'".format(args.arch))
+    if args.log_info and not args.debug:
+        log.info("=> creating model '{}'".format(args.arch))
+        result_log.info("=> creating model '{}'".format(args.arch))
     model = models.__dict__[args.arch](num_classes=args.num_classes, remove_linear=args.do_meta_train)
 
-    log.info('Number of model parameters: {}'.format(sum([p.data.nelement() for p in model.parameters()])))
+    if args.log_info and not args.debug:
+        log.info('Number of model parameters: {}'.format(sum([p.data.nelement() for p in model.parameters()])))
+        result_log.info('Number of model parameters: {}'.format(sum([p.data.nelement() for p in model.parameters()])))
 
     # model = torch.nn.DataParallel(model).to(device)
     model = model.to(device)
@@ -62,7 +91,9 @@ def main():
     if args.pretrain:
         pretrain = args.pretrain + '/checkpoint.pth.tar'
         if os.path.isfile(pretrain):
-            log.info("=> loading pretrained weight '{}'".format(pretrain))
+            if args.log_info and not args.debug:
+                log.info("=> loading pretrained weight '{}'".format(pretrain))
+                result_log.info("=> loading pretrained weight '{}'".format(pretrain))
             checkpoint = torch.load(pretrain)
             model_dict = model.state_dict()
             params = checkpoint['state_dict']
@@ -70,7 +101,9 @@ def main():
             model_dict.update(params)
             model.load_state_dict(model_dict)
         else:
-            log.info('[Attention]: Do not find pretrained model {}'.format(pretrain))
+            if args.log_info and not args.debug:
+                log.info('[Attention]: Do not find pretrained model {}'.format(pretrain))
+                result_log.info('[Attention]: Do not find pretrained model {}'.format(pretrain))
 
     # resume from an exist checkpoint
     if os.path.isfile(args.save_path + '/checkpoint.pth.tar') and args.resume == '':
@@ -78,34 +111,41 @@ def main():
 
     if args.resume:
         if os.path.isfile(args.resume):
-            log.info("=> loading checkpoint '{}'".format(args.resume))
+            if args.log_info and not args.debug:
+                log.info("=> loading checkpoint '{}'".format(args.resume))
+                result_log.info("=> loading checkpoint '{}'".format(args.resume))
             checkpoint = torch.load(args.resume)
             args.start_epoch = checkpoint['epoch']
             best_prec1 = checkpoint['best_prec1']
             # scheduler.load_state_dict(checkpoint['scheduler'])
             model.load_state_dict(checkpoint['state_dict'])
             optimizer.load_state_dict(checkpoint['optimizer'])
-            log.info("=> loaded checkpoint '{}' (epoch {})"
-                     .format(args.resume, checkpoint['epoch']))
+            if args.log_info and not args.debug:
+                log.info("=> loaded checkpoint '{}' (epoch {})"
+                        .format(args.resume, checkpoint['epoch']))
+                result_log.info("=> loaded checkpoint '{}' (epoch {})"
+                        .format(args.resume, checkpoint['epoch']))
         else:
-            log.info('[Attention]: Do not find checkpoint {}'.format(args.resume))
+            if args.log_info and not args.debug:
+                log.info('[Attention]: Do not find checkpoint {}'.format(args.resume))
 
     cudnn.benchmark = True
 
     # Data loading code
+    used_files = set(miscellaneous.get_classFile_to_wikiID('./src/utils/miniDatasets_full.txt').keys())
 
     if args.evaluate:
-        do_extract_and_evaluate(model, log)
+        do_extract_and_evaluate(model, result_log, None, used_files)
         return
 
     if args.do_meta_train:
         sample_info = [args.meta_train_iter, args.meta_train_way, args.meta_train_shot, args.meta_train_query]
-        train_loader = get_dataloader('train', not args.disable_train_augment, sample=sample_info)
+        train_loader = get_dataloader('train', used_files, not args.disable_train_augment, sample=sample_info)
     else:
-        train_loader = get_dataloader('train', not args.disable_train_augment, shuffle=True)
+        train_loader = get_dataloader('train', used_files, not args.disable_train_augment, shuffle=True)
 
     sample_info = [args.meta_val_iter, args.meta_val_way, args.meta_val_shot, args.meta_val_query]
-    val_loader = get_dataloader('val', False, sample=sample_info)
+    val_loader = get_dataloader('val', used_files, False, sample=sample_info)
 
     scheduler = get_scheduler(len(train_loader), optimizer)
     tqdm_loop = warp_tqdm(list(range(args.start_epoch, args.epochs)))
@@ -136,7 +176,7 @@ def main():
         scheduler.step()
 
     # do evaluate at the end
-    do_extract_and_evaluate(model, log)
+    do_extract_and_evaluate(model, result_log, None, used_files)
 
 
 def get_metric(metric_type):
@@ -301,27 +341,27 @@ def accuracy(output, target, topk=(1,)):
         return res
 
 
-def setup_logger(filepath):
-    file_formatter = logging.Formatter(
-        "[%(asctime)s %(filename)s:%(lineno)s] %(levelname)-8s %(message)s",
+def setup_logger(name, log_file, level=logging.INFO, display=False):
+    """To setup as many loggers as you want"""
+
+    formatter = logging.Formatter(
+        "[%(asctime)s %(filename)s:%(lineno)3s] %(levelname)-8s %(message)s",
         datefmt='%Y-%m-%d %H:%M:%S',
     )
-    logger = logging.getLogger('example')
-    # handler = logging.StreamHandler()
-    # handler.setFormatter(file_formatter)
-    # logger.addHandler(handler)
 
-    file_handle_name = "file"
-    if file_handle_name in [h.name for h in logger.handlers]:
-        return
-    if os.path.dirname(filepath) is not '':
-        if not os.path.isdir(os.path.dirname(filepath)):
-            os.makedirs(os.path.dirname(filepath))
-    file_handle = logging.FileHandler(filename=filepath, mode="w")
-    file_handle.set_name(file_handle_name)
-    file_handle.setFormatter(file_formatter)
-    logger.addHandler(file_handle)
-    logger.setLevel(logging.DEBUG)
+    handler = logging.FileHandler(log_file, mode='a')        
+    handler.setFormatter(formatter)
+
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+    logger.addHandler(handler)
+    
+    if display:
+        console = logging.StreamHandler()
+        console.setLevel(logging.INFO)
+        console.setFormatter(formatter)
+        logger.addHandler(console)
+
     return logger
 
 
@@ -409,13 +449,15 @@ def extract_feature(train_loader, val_loader, model, tag='last'):
         return all_info
 
 
-def get_dataloader(split, aug=False, shuffle=True, out_name=False, sample=None):
+def get_dataloader(split, used_files, aug=False, shuffle=True, out_name=False, sample=None, spclasses_dict=None):
     # sample: iter, way, shot, query
     if aug:
         transform = datasets.with_augment(84, disable_random_resize=args.disable_random_resize)
     else:
         transform = datasets.without_augment(84, enlarge=args.enlarge)
-    sets = datasets.DatasetFolder(args.data, args.split_dir, split, transform, out_name=out_name)
+    sets = datasets.DatasetFolder(args.data, args.split_dir, split, used_files, transform, out_name=out_name, spclasses_dict=spclasses_dict)
+    # if args.debug:
+    #     import ipdb; ipdb.set_trace()
     if sample is not None:
         sampler = datasets.CategoriesSampler(sets.labels, *sample)
         loader = torch.utils.data.DataLoader(sets, batch_sampler=sampler,
@@ -527,9 +569,9 @@ def sample_case(ld_dict, shot):
     return train_input, test_input, train_label, test_label
 
 
-def do_extract_and_evaluate(model, log):
-    train_loader = get_dataloader('train', aug=False, shuffle=False, out_name=False)
-    val_loader = get_dataloader('test', aug=False, shuffle=False, out_name=False)
+def do_extract_and_evaluate(model, log, classFile_to_superclasses, used_files):
+    train_loader = get_dataloader('train', used_files, aug=False, shuffle=False, out_name=False)
+    val_loader = get_dataloader('test', used_files, aug=False, shuffle=False, out_name=False)
     load_checkpoint(model, 'last')
     out_mean, fc_out_mean, out_dict, fc_out_dict = extract_feature(train_loader, val_loader, model, 'last')
     accuracy_info_shot1 = meta_evaluate(out_dict, out_mean, 1)

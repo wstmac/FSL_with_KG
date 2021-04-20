@@ -18,8 +18,8 @@ class SELayer(nn.Module):
         mask = self.fc(mask)
         weighted_x = x * mask.view(b, c, 1, 1).expand_as(x)
 
-        if all:
-            return weighted_x, mask
+        if all or (self.topk==-1):
+            return weighted_x
         else:
             _, idx = mask.topk(self.topk, dim=1)
-            return weighted_x[:,idx[0],:,:], mask
+            return weighted_x[:,idx[0],:,:]

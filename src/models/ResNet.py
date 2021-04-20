@@ -164,7 +164,7 @@ class ResNet(nn.Module):
 
 class ResNetAttention(nn.Module):
 
-    def __init__(self, block, layers, num_classes, num_spclasses, zero_init_residual=False, pool_type='avg_pool'):
+    def __init__(self, block, layers, num_classes, sp_embedding_feature_dim, zero_init_residual=False, pool_type='avg_pool', top_k=16):
         super(ResNetAttention, self).__init__()
         self.inplanes = 64
         self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1,
@@ -176,6 +176,7 @@ class ResNetAttention(nn.Module):
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
 
+        self.top_k = top_k
         self.dim_feature = 256 * block.expansion
 
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
@@ -185,9 +186,31 @@ class ResNetAttention(nn.Module):
         elif pool_type == 'max_pool':
             self.pool = nn.AdaptiveMaxPool2d((1, 1))
 
-        # self.SELayer4 = SELayer(512)
-        self.SELayer3 = SELayer(256)
-        self.sp_fc = nn.Linear(256 * block.expansion, num_spclasses)
+        # ------------------------------- #
+        # Version 3
+        # ------------------------------- #
+        # layer 3 attention 
+        # self.SELayer = SELayer(256, self.top_k)
+        # self.sp_fc = nn.Linear(self.top_k * 21 * 21, sp_embedding_feature_dim)
+
+        # layer 4 attention
+        # self.SELayer = SELayer(512, self.top_k)
+        # self.sp_fc = nn.Linear(self.top_k * 11 * 11, sp_embedding_feature_dim)
+        # self.sp_fc = nn.Sequential(nn.Dropout(0.2),
+                                    # nn.Linear(self.top_k * 11 * 11, sp_embedding_feature_dim))
+
+        # ------------------------------------------------------------------- #
+        # Version 4: Apply conv on attented features
+        # ------------------------------------------------------------------- #
+        self.sp_layer = nn.Sequential(conv3x3(256, 512, 2),
+                                    nn.BatchNorm2d(512),
+                                    SELayer(512, topk=-1),
+                                    nn.ReLU(inplace=True),
+                                    conv3x3(512, sp_embedding_feature_dim, 2),
+                                    nn.BatchNorm2d(sp_embedding_feature_dim),
+                                    SELayer(sp_embedding_feature_dim, topk=-1),
+                                    nn.ReLU(inplace=True))
+                                    
 
         self.fc = nn.Linear(512 * block.expansion, num_classes)
 
@@ -229,45 +252,52 @@ class ResNetAttention(nn.Module):
         x = self.bn1(x)
         x = self.relu(x)
 
-        x1 = self.layer1(x) # (batch_size, 64, 56, 56)
-        x2 = self.layer2(x1) # (batch_size, 128, 28, 28)
-        x3 = self.layer3(x2) # (batch_size, 256, 14, 14)
-        x4 = self.layer4(x3) # (batch_size, 512, 7, 7)
+        x1 = self.layer1(x) # (batch_size, 64, 84, 84)
+        x2 = self.layer2(x1) # (batch_size, 128, 42, 42)
+        x3 = self.layer3(x2) # (batch_size, 256, 21, 21)
+        x4 = self.layer4(x3) # (batch_size, 512, 11, 11)
 
-        x4 = self.avgpool(x4)
-        feature = x4.view(x4.size(0), -1)
+        x5 = self.avgpool(x4)
+        feature = x5.view(x5.size(0), -1)
 
-        att_feature = self.pool(self.SELayer3(x3)[0])
+
+        att_feature = self.sp_layer(x3)
+        att_feature = self.avgpool(att_feature)
         att_feature = att_feature.view(x.size(0), -1)
 
-        return feature, self.fc(feature), att_feature, self.sp_fc(att_feature)
+
+        # import ipdb; ipdb.set_trace()
+        # att_feature = self.pool(self.SELayer3(x3)[0])
+        # att_feature = att_feature.view(x.size(0), -1)
+
+        return feature, self.fc(feature), att_feature, att_feature
 
 
-def resnet10_att(num_classes, num_spclasses, pool_type):
+def resnet10_att(num_classes, sp_embedding_feature_dim, pool_type, top_k):
     """Constructs a ResNet-10-attention model.
     """
-    model = ResNetAttention(BasicBlock, [1, 1, 1, 1], num_classes, num_spclasses, pool_type)
+    model = ResNetAttention(BasicBlock, [1, 1, 1, 1], num_classes, sp_embedding_feature_dim, pool_type, top_k)
     return model
 
 
-def resnet18_att(num_classes, num_spclasses, pool_type):
+def resnet18_att(num_classes, sp_embedding_feature_dim, pool_type, top_k):
     """Constructs a ResNet-18-attention model.
     """
-    model = ResNetAttention(BasicBlock, [2, 2, 2, 2], num_classes, num_spclasses, pool_type)
+    model = ResNetAttention(BasicBlock, [2, 2, 2, 2], num_classes, sp_embedding_feature_dim, pool_type, top_k)
     return model
 
 
-def resnet34_att(num_classes, num_spclasses, pool_type):
+def resnet34_att(num_classes, sp_embedding_feature_dim, pool_type, top_k):
     """Constructs a ResNet-34-att model.
     """
-    model = ResNetAttention(BasicBlock, [3, 4, 6, 3], num_classes, num_spclasses, pool_type)
+    model = ResNetAttention(BasicBlock, [3, 4, 6, 3], num_classes, sp_embedding_feature_dim, pool_type, top_k)
     return model
 
 
-def resnet50_att(num_classes, num_spclasses, pool_type):
+def resnet50_att(num_classes, sp_embedding_feature_dim, pool_type, top_k):
     """Constructs a ResNet-50-att model.
     """
-    model = ResNetAttention(Bottleneck, [3, 4, 6, 3], num_classes, num_spclasses)
+    model = ResNetAttention(Bottleneck, [3, 4, 6, 3], num_classes, sp_embedding_feature_dim)
     return model
 
 

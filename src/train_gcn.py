@@ -32,6 +32,8 @@ from models import GraphConv
 
 best_prec1 = -1
 
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 
 def main():
     global args, best_prec1, device
