@@ -129,9 +129,6 @@ class Graph():
             wikiID, _ = self.get_node_info_by_index(key)
             classFile = wikiID_to_classFile[wikiID]
 
-
-
-
             # ------------------------------- #
             # Version 3
             # ------------------------------- #

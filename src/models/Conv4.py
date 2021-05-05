@@ -133,7 +133,9 @@ class Conv4Att(nn.Module):
         self.top_k = 16
 
         self.fc = nn.Linear(1600, num_classes)
-        self.sp_fc = nn.Linear(400, sp_embedding_feature_dim)
+        self.sp_fc = nn.Sequential(nn.Dropout(0.2),
+                                nn.Linear(400, sp_embedding_feature_dim))
+        # self.sp_fc = nn.Linear(400, sp_embedding_feature_dim)
         self.SELayer = SELayer(64, self.top_k)
 
         # if pool_type == 'avg_pool':
@@ -151,7 +153,7 @@ class Conv4Att(nn.Module):
         # att_feature, _ = self.SELayer(x4)
         # att_feature = att_feature.view(x.size(0), -1)
 
-        att_feature = self.SELayer(x4, all=False)[0]
+        att_feature = self.SELayer(x4, all=False)
         att_feature = att_feature.view(x.size(0), -1)
 
         return feature, self.fc(feature), self.sp_fc(att_feature), self.sp_fc(att_feature)

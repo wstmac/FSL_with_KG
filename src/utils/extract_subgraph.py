@@ -3,22 +3,34 @@ from tqdm import tqdm
 from SPARQLWrapper import SPARQLWrapper, JSON
 import csv
 
-from .miscellaneous import MINI_CLASSES_PATH, RELATIONSHIPS
+from .miscellaneous import LOOKUP_TABLE_PATH, MINI_CLASSES_PATH, RELATIONSHIPS
 
+global lookup_table
+with open(LOOKUP_TABLE_PATH, 'r') as f:
+            lookup_table = json.load(f)
 
 def extract_subgraph(file_path):
-    subjects = get_subjects()
-    lookup_table = subjects.copy()
-    # lookup_table['P31'] = 'instanceOf'
+    
+    # lookup_table = subjects.copy()
+    global lookup_table
+    # import ipdb; ipdb.set_trace()
+    lookup_table['P31'] = 'instanceOf'
     lookup_table['P279'] = 'subclassOf'
+    subjects = get_subjects()
 
-    nodes, rels, lookup_table =\
-            get_rel_linked_list(subjects, lookup_table)
+    nodes, rels =\
+            get_rel_linked_list(subjects)
 
-    generateCSVFiles(nodes, rels, lookup_table, subjects, file_path)
+    saved_path = f'{file_path}/miniImageNet'
+
+    generateCSVFiles(nodes, rels, subjects, saved_path)
+
+    import ipdb; ipdb.set_trace()
+    with open(f'{file_path}/lookup_table.json', mode='w') as lookup_table_file:
+        json.dump(lookup_table, lookup_table_file)
 
 
-def get_rel_linked_list(class_nodes, lookup_table):
+def get_rel_linked_list(class_nodes):
     nodes = set()
     rels = set()
 
@@ -30,26 +42,27 @@ def get_rel_linked_list(class_nodes, lookup_table):
         print(f'[{i+1}/{len(class_nodes)}] Process {wikiID}: {lookup_table[wikiID]}')
         nodes.add(wikiID)
         for relID in RELATIONSHIPS.keys():
-            nodes, rels, lookup_table, processedNodes[rel] = query(nodes, rels, lookup_table, wikiID, relID, processedNodes[rel])
+            nodes, rels, processedNodes[rel] = query(nodes, rels, wikiID, relID, processedNodes[rel])
 
-    return nodes, rels, lookup_table
+    return nodes, rels
 
 
-def query(nodes, rels, lookup_table, nodeID, relID, processedNodes):
-    nodes, rels, lookup_table, result_nodes = _query(nodes, rels, lookup_table, nodeID, relID)
+def query(nodes, rels, nodeID, relID, processedNodes):
+    nodes, rels, result_nodes = _query(nodes, rels, nodeID, relID)
     processedNodes.add(nodeID)
 
     while result_nodes:
         newNodeID = result_nodes.pop()
         if not newNodeID in processedNodes:
-            nodes, rels, lookup_table, sub_result_nodes = _query(nodes, rels, lookup_table, newNodeID, relID)
+            nodes, rels, sub_result_nodes = _query(nodes, rels, newNodeID, relID)
             processedNodes.add(newNodeID)
             result_nodes.update(sub_result_nodes)
 
-    return nodes, rels, lookup_table, processedNodes
+    return nodes, rels, processedNodes
 
 
-def _query(nodes, rels, lookup_table, nodeID, relID):
+def _query(nodes, rels, nodeID, relID):
+    global lookup_table
     query = """SELECT ?item ?itemLabel ?itemDescription WHERE {wd:""" + nodeID + """ wdt:""" + relID + """ ?item. \
         SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }} """
     results = get_results(query)
@@ -71,9 +84,9 @@ def _query(nodes, rels, lookup_table, nodeID, relID):
                     itemDescription = itemContent
                 else:
                     itemDescription = result['itemDescription']['value']
-                lookup_table[itemID] = (itemContent, itemDescription)
+                lookup_table[itemID] = [itemContent, itemDescription]
 
-    return nodes, rels, lookup_table, result_nodes
+    return nodes, rels, result_nodes
 
 
 def check_query(nodes, rels):
@@ -90,6 +103,7 @@ def check_query(nodes, rels):
 
 
 def get_subjects():
+    global lookup_table
     subjects = {}
     with open(MINI_CLASSES_PATH, 'r') as f:
         lines = f.readlines()
@@ -99,25 +113,28 @@ def get_subjects():
                 label = label.split(':')[-1].strip()
                 wiki_id = wiki_id.strip()
 
-                query= 'SELECT ?itemDescription\
-                    WHERE {\
-                        SERVICE wikibase:label {\
-                        bd:serviceParam wikibase:language "en" .\
-                        wd:'+ wiki_id +' schema:description ?itemDescription .\
-                        }\
-                    }'
-                
-                results = get_results(query)
-                if 'itemDescription' in results['results']['bindings'][0]:
-                    itemDescription = results['results']['bindings'][0]['itemDescription']['value']
+                if wiki_id not in lookup_table.keys():
+                    query= 'SELECT ?itemDescription\
+                        WHERE {\
+                            SERVICE wikibase:label {\
+                            bd:serviceParam wikibase:language "en" .\
+                            wd:'+ wiki_id +' schema:description ?itemDescription .\
+                            }\
+                        }'
+                    
+                    results = get_results(query)
+                    if 'itemDescription' in results['results']['bindings'][0]:
+                        itemDescription = results['results']['bindings'][0]['itemDescription']['value']
+                    else:
+                        itemDescription = label.replace('_', ' ')
+                    subjects[wiki_id] = (label, itemDescription)
+                    lookup_table[wiki_id] = [label, itemDescription]
                 else:
-                    itemDescription = label.replace('_', ' ')
-                subjects[wiki_id] = (label, itemDescription)
-                # subjects[wiki_id] = label
+                    subjects[wiki_id] = lookup_table[wiki_id]
     return subjects
 
 
-def generateCSVFiles(nodes, rels, lookup_table, classNodes, file_path):
+def generateCSVFiles(nodes, rels, classNodes, file_path):
     nodeCSV = open(f'{file_path}/node.csv', mode='w')
     nodeWriter = csv.writer(nodeCSV, delimiter=',')
     nodeWriter.writerow(['wikiID:ID','content',':LABEL'])
@@ -136,8 +153,6 @@ def generateCSVFiles(nodes, rels, lookup_table, classNodes, file_path):
     for rel in rels:
         relWriter.writerow([rel[0], lookup_table[rel[1]], rel[2], rel[1]])
 
-    with open(f'{file_path}/lookup_table.json', mode='w') as lookup_table_file:
-        json.dump(lookup_table, lookup_table_file)
 
 
 def get_results(query):

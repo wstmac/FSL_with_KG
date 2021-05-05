@@ -1,5 +1,6 @@
 import torch.nn as nn
 from .ChannelAtt import SELayer
+import torch.nn.functional as F
 
 __all__ = ['resnet10', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
            'resnet152','resnet10_att', 'resnet18_att', 'resnet34_att', 'resnet50_att']
@@ -195,21 +196,35 @@ class ResNetAttention(nn.Module):
 
         # layer 4 attention
         # self.SELayer = SELayer(512, self.top_k)
-        # self.sp_fc = nn.Linear(self.top_k * 11 * 11, sp_embedding_feature_dim)
         # self.sp_fc = nn.Sequential(nn.Dropout(0.2),
-                                    # nn.Linear(self.top_k * 11 * 11, sp_embedding_feature_dim))
+        #                             nn.Linear(self.top_k * 11 * 11, sp_embedding_feature_dim))
 
         # ------------------------------------------------------------------- #
         # Version 4: Apply conv on attented features
         # ------------------------------------------------------------------- #
-        self.sp_layer = nn.Sequential(conv3x3(256, 512, 2),
-                                    nn.BatchNorm2d(512),
-                                    SELayer(512, topk=-1),
-                                    nn.ReLU(inplace=True),
-                                    conv3x3(512, sp_embedding_feature_dim, 2),
-                                    nn.BatchNorm2d(sp_embedding_feature_dim),
-                                    SELayer(sp_embedding_feature_dim, topk=-1),
-                                    nn.ReLU(inplace=True))
+        # self.sp_layer = nn.Sequential(conv3x3(256, 512, 2),
+        #                             nn.BatchNorm2d(512),
+        #                             SELayer(512, topk=-1),
+        #                             nn.ReLU(inplace=True),
+        #                             conv3x3(512, sp_embedding_feature_dim, 2),
+        #                             nn.BatchNorm2d(sp_embedding_feature_dim),
+        #                             SELayer(sp_embedding_feature_dim, topk=-1),
+        #                             nn.ReLU(inplace=True))
+
+        # ----------------------------------------------------------- #
+        # Version 5: contrastive loss
+        # ----------------------------------------------------------- #
+
+        self.SELayer = SELayer(512, self.top_k)
+        # self.sp_fc = nn.Sequential(nn.Dropout(0.2),
+        #                             nn.Linear(self.top_k * 11 * 11, sp_embedding_feature_dim))
+        self.sp_fc = nn.Sequential(nn.Linear(self.top_k * 11 * 11, sp_embedding_feature_dim))
+
+        self.head = nn.Sequential(
+                nn.Linear(sp_embedding_feature_dim, sp_embedding_feature_dim),
+                nn.ReLU(inplace=True),
+                nn.Linear(sp_embedding_feature_dim, 128)
+            )
                                     
 
         self.fc = nn.Linear(512 * block.expansion, num_classes)
@@ -261,16 +276,35 @@ class ResNetAttention(nn.Module):
         feature = x5.view(x5.size(0), -1)
 
 
-        att_feature = self.sp_layer(x3)
-        att_feature = self.avgpool(att_feature)
-        att_feature = att_feature.view(x.size(0), -1)
+        # ----------------------------------------------------------- #
+        # Version 3
+        # ----------------------------------------------------------- #
+        # att_feature = self.SELayer(x4)
+        # att_feature = att_feature.view(x.size(0), -1)
+        # att_feature = self.sp_fc(att_feature)
+
+        # ----------------------------------------------------------- #
+        # Version 4
+        # ----------------------------------------------------------- #
+        # att_feature = self.sp_layer(x3)
+        # att_feature = self.avgpool(att_feature)
+        # att_feature = att_feature.view(x.size(0), -1)
 
 
         # import ipdb; ipdb.set_trace()
         # att_feature = self.pool(self.SELayer3(x3)[0])
         # att_feature = att_feature.view(x.size(0), -1)
 
-        return feature, self.fc(feature), att_feature, att_feature
+
+        # ----------------------------------------------------------- #
+        # Version 5: contrastive loss on sp_feature
+        # ----------------------------------------------------------- #
+        att_feature = self.SELayer(x4)
+        att_feature = att_feature.view(x.size(0), -1)
+        att_feature = self.sp_fc(att_feature)
+        contrastive_feature = F.normalize(self.head(att_feature), dim=1)
+
+        return feature, self.fc(feature), att_feature, contrastive_feature
 
 
 def resnet10_att(num_classes, sp_embedding_feature_dim, pool_type, top_k):

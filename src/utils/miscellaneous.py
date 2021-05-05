@@ -6,12 +6,12 @@ import torch
 # ------------------------------- #
 PATH = os.path.dirname(os.path.realpath(__file__))
 
-NODE_PATH = f'{PATH}/node.csv'
-REL_PATH = f'{PATH}/rel.csv'
-MINI_CLASSES_PATH = f'{PATH}/miniDatasets.txt'
+NODE_PATH = f'{PATH}/miniImageNet/node.csv'
+REL_PATH = f'{PATH}/miniImageNet/rel.csv'
+MINI_CLASSES_PATH = f'{PATH}/miniImageNet/miniImageNet_full.txt'
 LOOKUP_TABLE_PATH = f'{PATH}/lookup_table.json'
 
-RELATIONSHIPS = {'P279':'subclassOf'}
+RELATIONSHIPS = {'P279':'subclassOf', 'P31':'instanceOf'}
 EPSILON = 1e-8
 
 # ------------------------------- #

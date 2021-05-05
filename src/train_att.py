@@ -3,12 +3,14 @@ import os
 import random
 import shutil
 import time
-import warnings
 import collections
 import pickle
+import tqdm
 from datetime import datetime
 from sklearn.metrics.pairwise import cosine_similarity
-
+from numpy import linalg as LA
+from scipy.stats import mode
+from sentence_transformers import SentenceTransformer
 
 import numpy as np
 import torch
@@ -20,15 +22,13 @@ import torch.optim
 import torch.utils.data
 import torch.utils.data.distributed
 from torch.optim.lr_scheduler import MultiStepLR, StepLR, CosineAnnealingLR
-import tqdm
-from utils import configuration, miscellaneous
-from numpy import linalg as LA
-from scipy.stats import mode
-from graph import Graph
-from sentence_transformers import SentenceTransformer
 
 import datasets
 import models
+from graph import Graph
+from utils import configuration, miscellaneous
+from losses import ComboLoss
+
 
 best_prec1 = -1
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -50,9 +50,12 @@ def main():
     else:
         args.save_path = f'{args.save_path}/{args.model_dir}'
 
-    log = setup_logger('train_log', args.save_path + '/training.log')
-    result_log = setup_logger('result_log', args.save_path + '/result.log', display=True)
-
+    if args.log_info and not args.debug:
+        log = setup_logger('train_log', args.save_path + '/training.log')
+        result_log = setup_logger('result_log', args.save_path + '/result.log', display=True)
+    else:
+        log = None
+        result_log = None
     if args.log_info and not args.debug:
         for key, value in sorted(vars(args).items()):
             log.info(str(key) + ': ' + str(value))
@@ -73,7 +76,7 @@ def main():
     # load knowledge graph
     knowledge_graph = Graph()
     classFile_to_superclasses, superclassID_to_wikiID =\
-        knowledge_graph.class_file_to_superclasses(1, [1], sentence_transformer, args.gpu)
+        knowledge_graph.class_file_to_superclasses(1, [1,2], sentence_transformer, args.gpu)
 
     # create model
     if args.log_info and not args.debug:
@@ -93,7 +96,7 @@ def main():
 
 
     # define loss function (criterion) and optimizer
-    criterion = loss_fn()
+    criterion = ComboLoss(args.loss_alpha, args.loss_beta)
 
     optimizer = get_optimizer(model)
 
@@ -122,7 +125,7 @@ def main():
         if os.path.isfile(args.resume):
             if args.log_info and not args.debug:
                 log.info("=> loading checkpoint '{}'".format(args.resume))
-                result_log("=> loading checkpoint '{}'".format(args.resume))
+                result_log.info("=> loading checkpoint '{}'".format(args.resume))
             checkpoint = torch.load(args.resume)
             args.start_epoch = checkpoint['epoch']
             best_prec1 = checkpoint['best_prec1']
@@ -152,9 +155,6 @@ def main():
         train_loader = get_dataloader('train', used_files, not args.disable_train_augment, sample=sample_info, spclasses_dict=classFile_to_superclasses)
     else:
         train_loader = get_dataloader('train', used_files, not args.disable_train_augment, shuffle=True, spclasses_dict=classFile_to_superclasses)
-
-    # if args.debug:
-    #     import ipdb; ipdb.set_trace()
 
     sample_info = [args.meta_val_iter, args.meta_val_way, args.meta_val_shot, args.meta_val_query] # 5-way 1-shot 15 val quereis
     val_loader = get_dataloader('val', used_files, False, sample=sample_info, spclasses_dict=classFile_to_superclasses)
@@ -208,19 +208,27 @@ def metric_prediction(gallery, query, sp_gallery, sp_query, train_label, metric_
     gallery = gallery.view(gallery.shape[0], -1)
     query = query.view(query.shape[0], -1)
 
-    sp_gallery = gallery.view(sp_gallery.shape[0], -1)
-    sp_query = query.view(sp_query.shape[0], -1)
 
     distance = get_metric(metric_type)(gallery, query)
-    sp_distance = get_metric(metric_type)(sp_gallery, sp_query)
 
-    combo_distance = args.loss_alpha * distance + args.loss_beta * sp_distance
+    device = distance.get_device()
 
-    predict = torch.argmin(combo_distance, dim=1)
+
+    sp_distance = get_metric('cosine')(sp_gallery, sp_query)
+    sp_distance = sp_distance.cpu().detach().numpy()
+
+    sp_idx = np.argpartition(sp_distance, max(3, int(args.meta_val_way * 0.25)),
+                             axis=0)[:max(3, int(args.meta_val_way * 0.25))]
+
+    restricted_distance = torch.ones(distance.shape, 
+                            device=torch.device(f'cuda:{device}')) * 100
+    
+    for i in range(sp_idx.shape[1]):                                                                                                                                                                             
+            restricted_distance[sp_idx[:,i],i] = distance[sp_idx[:,i],i] 
+
+    predict = torch.argmin(restricted_distance, dim=1)
     predict = torch.take(train_label, predict)
-
     return predict
-
 
 def meta_val(test_loader, model, train_mean=None):
     top1 = AverageMeter()
@@ -233,7 +241,7 @@ def meta_val(test_loader, model, train_mean=None):
             inputs = inputs.to(device, non_blocking=True)
             target = target.to(device, non_blocking=True)
             sp_target = sp_target.to(device, non_blocking=True)
-            output, _, _, sp_output = model(inputs)
+            output, _, sp_output, _ = model(inputs)
             if train_mean is not None:
                 output = output - train_mean
 
@@ -247,10 +255,13 @@ def meta_val(test_loader, model, train_mean=None):
             train_out = train_out.reshape(args.meta_val_way, args.meta_val_shot, -1).mean(1)
             train_label = train_label[::args.meta_val_shot]
 
-            # get super class feature
-            train_sp_out = sp_output[:args.meta_val_way * args.meta_val_shot]
-            test_sp_out = sp_output[args.meta_val_way * args.meta_val_shot:]
+            train_sp_out = sp_target[:args.meta_val_way * args.meta_val_shot]
             train_sp_out = train_sp_out.reshape(args.meta_val_way, args.meta_val_shot, -1).mean(1)
+
+            # get super class feature
+            # train_sp_out = sp_output[:args.meta_val_way * args.meta_val_shot]
+            test_sp_out = sp_output[args.meta_val_way * args.meta_val_shot:]
+            # train_sp_out = train_sp_out.reshape(args.meta_val_way, args.meta_val_shot, -1).mean(1)
 
             prediction = metric_prediction(train_out, test_out, train_sp_out, test_sp_out, train_label, args.meta_val_metric)
             acc = (prediction == test_label).float().mean()
@@ -282,9 +293,19 @@ def train(train_loader, model, criterion, optimizer, epoch, scheduler, log):
 
         if args.do_meta_train:
             target = torch.arange(args.meta_train_way)[:, None].repeat(1, args.meta_train_query).reshape(-1).long()
-        target = target.to(device, non_blocking=True)
-        sp_target = sp_target.to(device, non_blocking=True)
-        input = input.to(device, non_blocking=True)
+
+
+        # target = target.to(device, non_blocking=True)
+        # sp_target = sp_target.to(device, non_blocking=True)
+        # input = input.to(device, non_blocking=True)
+        # ----------------------------------------------------------- #
+        # Contrastive loss version
+        # ----------------------------------------------------------- #
+        target = target.repeat(2).to(device, non_blocking=True)
+        sp_mask = pairwise_distances(sp_target, sp_target, 'cosine')
+        sp_mask = torch.where(sp_mask<0.1, 1, 0).float().to(device, non_blocking=True)
+        input = torch.cat([input[0], input[1]], dim=0).to(device, non_blocking=True)
+
         # compute output
         r = np.random.rand(1)
         if args.beta > 0 and r < args.cutmix_prob:
@@ -301,17 +322,26 @@ def train(train_loader, model, criterion, optimizer, epoch, scheduler, log):
             output, _, _, _ = model(input)
             loss = criterion(output, target_a) * lam + criterion(output, target_b) * (1. - lam)
         else:
-            _, output, _, sp_output = model(input)
+            _, output, _, contrastive_output = model(input)
+            # ----------------------------------------------------------- #
+            # Contrative loss version
+            # ----------------------------------------------------------- #
+            f1, f2 = torch.split(contrastive_output, [args.batch_size, args.batch_size], dim=0)
+            contrastive_output = torch.cat([f1.unsqueeze(1), f2.unsqueeze(1)], dim=1)
+
+            # import ipdb; ipdb.set_trace()
+
             if args.do_meta_train:
                 # output = output.to(device)
                 shot_proto = output[:args.meta_train_shot * args.meta_train_way]
                 query_proto = output[args.meta_train_shot * args.meta_train_way:]
                 shot_proto = shot_proto.reshape(args.meta_train_way, args.meta_train_shot, -1).mean(1)
                 output = -get_metric(args.meta_train_metric)(shot_proto, query_proto)
-            cel_loss, sp_loss, loss = criterion(output, target, sp_output, sp_target)
 
-        if args.debug:
-            import ipdb; ipdb.set_trace()
+            cel_loss, sp_loss, loss = criterion(output, target, contrastive_output, sp_mask)
+
+        # if args.debug:
+        #     import ipdb; ipdb.set_trace()
 
         # measure accuracy and record loss
         losses.update(loss.item(), input.size(0))
@@ -397,6 +427,43 @@ def accuracy(output, target, topk=(1,)):
             correct_k = correct[:k].reshape(-1).float().sum(0, keepdim=True)
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
+
+
+def pairwise_distances(x: torch.Tensor,
+                       y: torch.Tensor,
+                       matching_fn: str  = 'l2') -> torch.Tensor:
+    """Efficiently calculate pairwise distances (or other similarity scores) between
+    two sets of samples.
+    # Arguments
+        x: Query samples. A tensor of shape (n_x, d) where d is the embedding dimension
+        y: Class centroids. A tensor of shape (n_y, d) where d is the embedding dimension
+        matching_fn: Distance metric/similarity score to compute between samples
+    """
+    n_x = x.shape[0]
+    n_y = y.shape[0]
+
+    if matching_fn == 'l2':
+        distances = (
+                x.unsqueeze(1).expand(n_x, n_y, -1) -
+                y.unsqueeze(0).expand(n_x, n_y, -1)
+        ).pow(2).sum(dim=2)
+        return distances
+    elif matching_fn == 'cosine':
+        normalised_x = x / (x.pow(2).sum(dim=1, keepdim=True).sqrt() + miscellaneous.EPSILON)
+        normalised_y = y / (y.pow(2).sum(dim=1, keepdim=True).sqrt() + miscellaneous.EPSILON)
+
+        expanded_x = normalised_x.unsqueeze(1).expand(n_x, n_y, -1)
+        expanded_y = normalised_y.unsqueeze(0).expand(n_x, n_y, -1)
+
+        cosine_similarities = (expanded_x * expanded_y).sum(dim=2)
+        return 1 - cosine_similarities
+    elif matching_fn == 'dot':
+        expanded_x = x.unsqueeze(1).expand(n_x, n_y, -1)
+        expanded_y = y.unsqueeze(0).expand(n_x, n_y, -1)
+
+        return -(expanded_x * expanded_y).sum(dim=2)
+    else:
+        raise(ValueError('Unsupported similarity function'))
 
 
 def setup_logger(name, log_file, level=logging.INFO, display=False):
@@ -535,6 +602,7 @@ def get_dataloader(split, used_files, aug=False, shuffle=True, out_name=False, s
     # sample: iter, way, shot, query
     if aug:
         transform = datasets.with_augment(84, disable_random_resize=args.disable_random_resize)
+        transform = datasets.TwoCropTransform(transform)
     else:
         transform = datasets.without_augment(84, enlarge=args.enlarge)
     sets = datasets.DatasetFolder(args.data, args.split_dir, split, used_files, transform, out_name=out_name, spclasses_dict=spclasses_dict)
@@ -594,21 +662,26 @@ def meta_evaluate(data, train_mean, sp_train_mean, sp_ground_truth_dict, shot):
     un_list = []
     l2n_list = []
     cl2n_list = []
+
+    sp_acc_list = []
+
     for _ in warp_tqdm(range(args.meta_test_iter)):
         train_data, test_data, sp_train_data, sp_test_data, train_label, test_label = sample_case(data, shot)
-        acc = metric_class_type(train_data, test_data, sp_train_data, sp_test_data, train_label, test_label, shot,
+        acc, sp_acc = metric_class_type(train_data, test_data, sp_train_data, sp_test_data, train_label, test_label, shot,
                                 train_mean=train_mean, sp_train_mean=sp_train_mean, sp_ground_truth_dict = sp_ground_truth_dict, norm_type='CL2N')
         cl2n_list.append(acc)
-        acc = metric_class_type(train_data, test_data, sp_train_data, sp_test_data, train_label, test_label, shot,
+        sp_acc_list.append(sp_acc)
+        acc, _ = metric_class_type(train_data, test_data, sp_train_data, sp_test_data, train_label, test_label, shot,
                                 train_mean=train_mean, sp_train_mean=sp_train_mean, sp_ground_truth_dict = sp_ground_truth_dict, norm_type='L2N')
         l2n_list.append(acc)
-        acc = metric_class_type(train_data, test_data, sp_train_data, sp_test_data, train_label, test_label, shot,
+        acc, _ = metric_class_type(train_data, test_data, sp_train_data, sp_test_data, train_label, test_label, shot,
                                 train_mean=train_mean, sp_train_mean=sp_train_mean, sp_ground_truth_dict = sp_ground_truth_dict, norm_type='UN')
         un_list.append(acc)
     un_mean, un_conf = compute_confidence_interval(un_list)
     l2n_mean, l2n_conf = compute_confidence_interval(l2n_list)
     cl2n_mean, cl2n_conf = compute_confidence_interval(cl2n_list)
-    return un_mean, un_conf, l2n_mean, l2n_conf, cl2n_mean, cl2n_conf
+    sp_mean, sp_conf = compute_confidence_interval(sp_acc_list)
+    return un_mean, un_conf, l2n_mean, l2n_conf, cl2n_mean, cl2n_conf, sp_mean, sp_conf
 
 
 def metric_class_type(gallery, query, sp_gallery, sp_query, train_label, test_label, shot, train_mean=None, sp_train_mean=None, sp_ground_truth_dict = None, norm_type='CL2N'):
@@ -618,62 +691,45 @@ def metric_class_type(gallery, query, sp_gallery, sp_query, train_label, test_la
         query = query - train_mean
         query = query / LA.norm(query, 2, 1)[:, None]
 
-        # sp_gallery = sp_gallery - sp_train_mean
-        # sp_gallery = sp_gallery / LA.norm(sp_gallery, 2, 1)[:, None]
-        # sp_query = sp_query - sp_train_mean
-        # sp_query = sp_query / LA.norm(sp_query, 2, 1)[:, None]
-
-
     elif norm_type == 'L2N':
         gallery = gallery / LA.norm(gallery, 2, 1)[:, None]
         query = query / LA.norm(query, 2, 1)[:, None]
 
-        # sp_gallery = sp_gallery / LA.norm(sp_gallery, 2, 1)[:, None]
-        # sp_query = sp_query / LA.norm(sp_query, 2, 1)[:, None]
-
     gallery = gallery.reshape(args.meta_val_way, shot, gallery.shape[-1]).mean(1)
-    # sp_gallery = sp_gallery.reshape(args.meta_val_way, shot, sp_gallery.shape[-1]).mean(1)
-
 
     sp_gallery = np.zeros((args.meta_val_way, 1024))
     for i, l in enumerate(list(dict.fromkeys(train_label))):
         sp_gallery[i] = sp_ground_truth_dict[l].numpy()
 
     train_label = train_label[::shot]
+    test_label = np.array(test_label)
     subtract = gallery[:, None, :] - query
 
-
-    # distance = LA.norm(subtract, 2, axis=-1)
-    # sp_distance = LA.norm(sp_subtract, 2, axis=-1)
-
-    # combo_distance = args.loss_alpha * distance + args.loss_beta * sp_distance
-
-    # idx = np.argpartition(combo_distance, args.num_NN, axis=0)[:args.num_NN]
-    # nearest_samples = np.take(train_label, idx)
-    # out = mode(nearest_samples, axis=0)[0]
-    # out = out.astype(int)
-    # test_label = np.array(test_label)
-    # acc = (out == test_label).mean()
-
-    distance = LA.norm(subtract, 2, axis=-1)
+    distance = LA.norm(subtract, 2, axis=-1)   
     sp_distance = cosine_similarity(sp_gallery, sp_query)
 
-    sp_idx = np.argpartition(sp_distance, 3, axis=0)[:3]
+    sp_candidates = max(3, int(args.meta_val_way * 0.25)) # select candidates according to the super features
+    sp_idx = np.argpartition(sp_distance, sp_candidates, axis=0)[:sp_candidates]
 
+    sp_nearest_samples = np.take(train_label, sp_idx)
+    sp_acc = 0
+    for i in range(sp_idx.shape[1]):
+        if test_label[i] in sp_nearest_samples[:,i]:
+            sp_acc += 1
+    sp_acc = sp_acc / sp_idx.shape[1]
 
     restricted_distance = np.ones(distance.shape) * 100
     for i in range(sp_idx.shape[1]):                                                                                                                                                                             
             restricted_distance[sp_idx[:,i],i] = distance[sp_idx[:,i],i] 
 
-    # combo_distance = args.loss_alpha * distance
 
     idx = np.argpartition(restricted_distance, args.num_NN, axis=0)[:args.num_NN]
     nearest_samples = np.take(train_label, idx)
     out = mode(nearest_samples, axis=0)[0]
     out = out.astype(int)
-    test_label = np.array(test_label)
+    
     acc = (out == test_label).mean()
-    return acc
+    return acc, sp_acc
 
 
 def sample_case(ld_dict, shot):
@@ -712,14 +768,15 @@ def do_extract_and_evaluate(model, log, classFile_to_superclasses, used_files):
     accuracy_info_shot1 = meta_evaluate(out_dict, out_mean, sp_out_mean, sp_ground_truth_dict, 1)
     accuracy_info_shot5 = meta_evaluate(out_dict, out_mean, sp_out_mean, sp_ground_truth_dict, 5)
 
+    sp_candidates = max(3, int(args.meta_val_way * 0.25))
     if args.log_info and not args.debug:
         log.info(
-            'Meta Test: LAST\nfeature\tUN\tL2N\tCL2N\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})'.format(
-                'GVP 1Shot', *accuracy_info_shot1, 'GVP_5Shot', *accuracy_info_shot5))
+            'Meta Test: LAST\nfeature\tUN\tL2N\tCL2N\tSP_ACC({}\{})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})'.format(
+                sp_candidates, args.meta_val_way, 'GVP 1Shot', *accuracy_info_shot1, 'GVP_5Shot', *accuracy_info_shot5))
     else:
         print(
-        'Meta Test: LAST\nfeature\tUN\tL2N\tCL2N\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})'.format(
-            'GVP 1Shot', *accuracy_info_shot1, 'GVP_5Shot', *accuracy_info_shot5))
+        'Meta Test: LAST\nfeature\tUN\tL2N\tCL2N\tSP_ACC({}\{})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})'.format(
+                sp_candidates, args.meta_val_way, 'GVP 1Shot', *accuracy_info_shot1, 'GVP_5Shot', *accuracy_info_shot5))
 
 
     if args.eval_fc:
@@ -736,12 +793,12 @@ def do_extract_and_evaluate(model, log, classFile_to_superclasses, used_files):
 
     if args.log_info and not args.debug:
         log.info(
-            'Meta Test: BEST\nfeature\tUN\tL2N\tCL2N\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})'.format(
-                'GVP 1Shot', *accuracy_info_shot1, 'GVP_5Shot', *accuracy_info_shot5))
+            'Meta Test: LAST\nfeature\tUN\tL2N\tCL2N\tSP_ACC({}\{})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})'.format(
+                sp_candidates, args.meta_val_way, 'GVP 1Shot', *accuracy_info_shot1, 'GVP_5Shot', *accuracy_info_shot5))
     else:
         print(
-        'Meta Test: BEST\nfeature\tUN\tL2N\tCL2N\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})'.format(
-            'GVP 1Shot', *accuracy_info_shot1, 'GVP_5Shot', *accuracy_info_shot5))
+        'Meta Test: LAST\nfeature\tUN\tL2N\tCL2N\tSP_ACC({}\{})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})'.format(
+                sp_candidates, args.meta_val_way, 'GVP 1Shot', *accuracy_info_shot1, 'GVP_5Shot', *accuracy_info_shot5))
 
 
     if args.eval_fc:
@@ -752,21 +809,6 @@ def do_extract_and_evaluate(model, log, classFile_to_superclasses, used_files):
         else:
             print('{}\t{:.4f}\t{:.4f}\t{:.4f}'.format('Logits', *accuracy_info))
 
-
-def loss_fn():
-
-    def _loss_fn(class_outputs, labels, sp_outputs, sp_embeddings):
-        # BCE_loss = F.binary_cross_entropy_with_logits(sp_outputs, sp_labels)
-        # SP_loss = torch.sum((sp_outputs-sp_embeddings).pow(2), dim=1).pow(0.5)
-        cos = torch.nn.CosineSimilarity(dim=1, eps=1e-8)
-        SP_loss = torch.mean(1 - cos(sp_outputs, sp_embeddings).abs())
-        CEL_loss = F.cross_entropy(class_outputs, labels)
-        
-        combo_loss = CEL_loss * args.loss_alpha + SP_loss * args.loss_beta
-
-        return CEL_loss, SP_loss, combo_loss
-
-    return _loss_fn
 
 if __name__ == '__main__':
     main()

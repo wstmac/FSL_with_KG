@@ -12,7 +12,7 @@ class SELayer(nn.Module):
         )
         self.topk = topk
 
-    def forward(self, x, all=True):
+    def forward(self, x, all=False):
         b, c, _, _ = x.size()
         mask = self.avg_pool(x).view(b, c)
         mask = self.fc(mask)
