@@ -663,25 +663,48 @@ def meta_evaluate(data, train_mean, sp_train_mean, sp_ground_truth_dict, shot):
     l2n_list = []
     cl2n_list = []
 
+    # ----------------------------------------------------------- #
+    # Store acc2: get acc without super class information
+    # ----------------------------------------------------------- #
+    un_list_2 = []
+    l2n_list_2 = []
+    cl2n_list_2 = []
+
     sp_acc_list = []
 
     for _ in warp_tqdm(range(args.meta_test_iter)):
         train_data, test_data, sp_train_data, sp_test_data, train_label, test_label = sample_case(data, shot)
-        acc, sp_acc = metric_class_type(train_data, test_data, sp_train_data, sp_test_data, train_label, test_label, shot,
+        acc, sp_acc, acc_2 = metric_class_type(train_data, test_data, sp_train_data, sp_test_data, train_label, test_label, shot,
                                 train_mean=train_mean, sp_train_mean=sp_train_mean, sp_ground_truth_dict = sp_ground_truth_dict, norm_type='CL2N')
         cl2n_list.append(acc)
+        cl2n_list_2.append(acc_2)
         sp_acc_list.append(sp_acc)
-        acc, _ = metric_class_type(train_data, test_data, sp_train_data, sp_test_data, train_label, test_label, shot,
+        acc, _, acc_2 = metric_class_type(train_data, test_data, sp_train_data, sp_test_data, train_label, test_label, shot,
                                 train_mean=train_mean, sp_train_mean=sp_train_mean, sp_ground_truth_dict = sp_ground_truth_dict, norm_type='L2N')
         l2n_list.append(acc)
-        acc, _ = metric_class_type(train_data, test_data, sp_train_data, sp_test_data, train_label, test_label, shot,
+        l2n_list_2.append(acc_2)
+        acc, _, acc_2 = metric_class_type(train_data, test_data, sp_train_data, sp_test_data, train_label, test_label, shot,
                                 train_mean=train_mean, sp_train_mean=sp_train_mean, sp_ground_truth_dict = sp_ground_truth_dict, norm_type='UN')
         un_list.append(acc)
+        un_list_2.append(acc_2)
+        # acc = metric_class_type(train_data, test_data, sp_train_data, sp_test_data, train_label, test_label, shot,
+        #                         train_mean=train_mean, sp_train_mean=sp_train_mean, sp_ground_truth_dict = sp_ground_truth_dict, norm_type='CL2N')
+        # cl2n_list.append(acc)
+        # acc = metric_class_type(train_data, test_data, sp_train_data, sp_test_data, train_label, test_label, shot,
+        #                         train_mean=train_mean, sp_train_mean=sp_train_mean, sp_ground_truth_dict = sp_ground_truth_dict, norm_type='L2N')
+        # l2n_list.append(acc)
+        # acc = metric_class_type(train_data, test_data, sp_train_data, sp_test_data, train_label, test_label, shot,
+        #                         train_mean=train_mean, sp_train_mean=sp_train_mean, sp_ground_truth_dict = sp_ground_truth_dict, norm_type='UN')
+        # un_list.append(acc)
     un_mean, un_conf = compute_confidence_interval(un_list)
     l2n_mean, l2n_conf = compute_confidence_interval(l2n_list)
     cl2n_mean, cl2n_conf = compute_confidence_interval(cl2n_list)
     sp_mean, sp_conf = compute_confidence_interval(sp_acc_list)
-    return un_mean, un_conf, l2n_mean, l2n_conf, cl2n_mean, cl2n_conf, sp_mean, sp_conf
+
+    un_mean_2, un_conf_2 = compute_confidence_interval(un_list_2)
+    l2n_mean_2, l2n_conf_2 = compute_confidence_interval(l2n_list_2)
+    cl2n_mean_2, cl2n_conf_2 = compute_confidence_interval(cl2n_list_2)
+    return un_mean, un_conf, l2n_mean, l2n_conf, cl2n_mean, cl2n_conf, sp_mean, sp_conf, un_mean_2, un_conf_2, l2n_mean_2, l2n_conf_2, cl2n_mean_2, cl2n_conf_2
 
 
 def metric_class_type(gallery, query, sp_gallery, sp_query, train_label, test_label, shot, train_mean=None, sp_train_mean=None, sp_ground_truth_dict = None, norm_type='CL2N'):
@@ -729,7 +752,22 @@ def metric_class_type(gallery, query, sp_gallery, sp_query, train_label, test_la
     out = out.astype(int)
     
     acc = (out == test_label).mean()
-    return acc, sp_acc
+
+
+
+    # ----------------------------------------------------------- #
+    # Compute acc without super class information
+    # ----------------------------------------------------------- #
+    idx_2 = np.argpartition(distance, args.num_NN, axis=0)[:args.num_NN]
+    nearest_samples_2 = np.take(train_label, idx_2)
+    out_2 = mode(nearest_samples_2, axis=0)[0]
+    out_2 = out_2.astype(int)
+    # test_label = np.array(test_label)
+    acc_2 = (out_2 == test_label).mean()
+
+    return acc, sp_acc, acc_2
+
+
 
 
 def sample_case(ld_dict, shot):
@@ -771,11 +809,11 @@ def do_extract_and_evaluate(model, log, classFile_to_superclasses, used_files):
     sp_candidates = max(3, int(args.meta_val_way * 0.25))
     if args.log_info and not args.debug:
         log.info(
-            'Meta Test: LAST\nfeature\tUN\tL2N\tCL2N\tSP_ACC({}\{})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})'.format(
+            'Meta Test: LAST\nfeature\tUN\tL2N\tCL2N\tSP_ACC({}\{})\tUN_2\tL2N_2\tCL2N_2\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})'.format(
                 sp_candidates, args.meta_val_way, 'GVP 1Shot', *accuracy_info_shot1, 'GVP_5Shot', *accuracy_info_shot5))
     else:
         print(
-        'Meta Test: LAST\nfeature\tUN\tL2N\tCL2N\tSP_ACC({}\{})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})'.format(
+        'Meta Test: LAST\nfeature\tUN\tL2N\tCL2N\tSP_ACC({}\{})\tUN_2\tL2N_2\tCL2N_2\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})'.format(
                 sp_candidates, args.meta_val_way, 'GVP 1Shot', *accuracy_info_shot1, 'GVP_5Shot', *accuracy_info_shot5))
 
 
@@ -793,11 +831,11 @@ def do_extract_and_evaluate(model, log, classFile_to_superclasses, used_files):
 
     if args.log_info and not args.debug:
         log.info(
-            'Meta Test: LAST\nfeature\tUN\tL2N\tCL2N\tSP_ACC({}\{})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})'.format(
+            'Meta Test: LAST\nfeature\tUN\tL2N\tCL2N\tSP_ACC({}\{})\tUN_2\tL2N_2\tCL2N_2\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})'.format(
                 sp_candidates, args.meta_val_way, 'GVP 1Shot', *accuracy_info_shot1, 'GVP_5Shot', *accuracy_info_shot5))
     else:
         print(
-        'Meta Test: LAST\nfeature\tUN\tL2N\tCL2N\tSP_ACC({}\{})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})'.format(
+        'Meta Test: LAST\nfeature\tUN\tL2N\tCL2N\tSP_ACC({}\{})\tUN_2\tL2N_2\tCL2N_2\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\n{}\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})\t{:.4f}({:.4f})'.format(
                 sp_candidates, args.meta_val_way, 'GVP 1Shot', *accuracy_info_shot1, 'GVP_5Shot', *accuracy_info_shot5))
 
 
