@@ -165,7 +165,7 @@ class ResNet(nn.Module):
 
 class ResNetAttention(nn.Module):
 
-    def __init__(self, block, layers, num_classes, sp_embedding_feature_dim, zero_init_residual=False, pool_type='avg_pool', top_k=16):
+    def __init__(self, block, layers, num_classes, sp_embedding_feature_dim, zero_init_residual=False, pool_type='avg_pool', top_k=32):
         super(ResNetAttention, self).__init__()
         self.inplanes = 64
         self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1,
@@ -178,7 +178,7 @@ class ResNetAttention(nn.Module):
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
 
         self.top_k = top_k
-        self.dim_feature = 256 * block.expansion
+        # self.dim_feature = 256 * block.expansion
 
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
@@ -215,7 +215,7 @@ class ResNetAttention(nn.Module):
         # Version 5: contrastive loss
         # ----------------------------------------------------------- #
 
-        self.SELayer = SELayer(512, self.top_k)
+        self.SELayer = SELayer(512 * block.expansion, topk=self.top_k)
         # self.sp_fc = nn.Sequential(nn.Dropout(0.2),
         #                             nn.Linear(self.top_k * 11 * 11, sp_embedding_feature_dim))
         self.sp_fc = nn.Sequential(nn.Linear(self.top_k * 11 * 11, sp_embedding_feature_dim))
@@ -263,6 +263,7 @@ class ResNetAttention(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x):
+        # print(f'top_k: {self.top_k}')
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
@@ -270,8 +271,8 @@ class ResNetAttention(nn.Module):
         x1 = self.layer1(x) # (batch_size, 64, 84, 84)
         x2 = self.layer2(x1) # (batch_size, 128, 42, 42)
         x3 = self.layer3(x2) # (batch_size, 256, 21, 21)
-        x4 = self.layer4(x3) # (batch_size, 512, 11, 11)
-
+        x4 = self.layer4(x3) # resnet_18: (batch_size, 512, 11, 11)       resnet_50: #(batch_size, 2048, 28, 28)
+        # print(f"x4: {x4.shape}")
         x5 = self.avgpool(x4)
         feature = x5.view(x5.size(0), -1)
 
@@ -300,9 +301,11 @@ class ResNetAttention(nn.Module):
         # Version 5: contrastive loss on sp_feature
         # ----------------------------------------------------------- #
         att_feature = self.SELayer(x4)
+        # print(f'after se: {att_feature.shape}')
         att_feature = att_feature.view(x.size(0), -1)
+        # print(att_feature.shape)
         att_feature = self.sp_fc(att_feature)
-        contrastive_feature = F.normalize(self.head(att_feature), dim=1)
+        contrastive_feature = self.head(att_feature)
 
         return feature, self.fc(feature), att_feature, contrastive_feature
 
@@ -331,7 +334,7 @@ def resnet34_att(num_classes, sp_embedding_feature_dim, pool_type, top_k):
 def resnet50_att(num_classes, sp_embedding_feature_dim, pool_type, top_k):
     """Constructs a ResNet-50-att model.
     """
-    model = ResNetAttention(Bottleneck, [3, 4, 6, 3], num_classes, sp_embedding_feature_dim)
+    model = ResNetAttention(Bottleneck, [3, 4, 6, 3], num_classes, sp_embedding_feature_dim, pool_type, top_k)
     return model
 
 

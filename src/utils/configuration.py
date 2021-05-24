@@ -114,5 +114,26 @@ def parser_args():
                         help='Write trianing parameters into the log file')
     parser.add_argument('--debug', action='store_true',
                         help='Write trianing parameters into the log file')
-                        
+
+    ### MoCo
+    parser.add_argument('--moco-dim', default=128, type=int,
+                    help='feature dimension (default: 128)')
+    parser.add_argument('--moco-k', default=65536, type=int,
+                        help='queue size; number of negative keys (default: 65536)')
+    parser.add_argument('--moco-m', default=0.999, type=float,
+                        help='moco momentum of updating key encoder (default: 0.999)')
+    parser.add_argument('--moco-t', default=0.07, type=float,
+                        help='softmax temperature (default: 0.07)')
+    parser.add_argument('--world-size', default=-1, type=int,
+                    help='number of nodes for distributed training')
+    parser.add_argument('--rank', default=-1, type=int,
+                    help='node rank for distributed training')
+    parser.add_argument('--dist-url', default='tcp://localhost:10001', type=str,
+                    help='url used to set up distributed training')
+    parser.add_argument('--dist-backend', default='nccl', type=str,
+                    help='distributed backend')
+
+
+    parser.add_argument('--model-name', default='checkpoint_399.pth.tar', type=str,
+                        help='checkpoint name of model')
     return parser.parse_args()

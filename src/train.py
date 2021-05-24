@@ -132,7 +132,7 @@ def main():
     cudnn.benchmark = True
 
     # Data loading code
-    used_files = set(miscellaneous.get_classFile_to_wikiID('./src/utils/miniDatasets_full.txt').keys())
+    used_files = set(miscellaneous.get_classFile_to_wikiID().keys())
 
     if args.evaluate:
         do_extract_and_evaluate(model, result_log, None, used_files)

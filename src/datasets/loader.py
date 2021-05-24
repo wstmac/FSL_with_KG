@@ -19,7 +19,7 @@ class DatasetFolder(object):
         label_key = sorted(np.unique(np.array(ori_labels)))
         label_map = dict(zip(label_key, range(len(label_key))))
         mapped_labels = [label_map[x] for x in ori_labels]
-        # import ipdb; ipdb.set_trace()
+
         self.root = root
         self.transform = transform
         self.data = data
@@ -45,8 +45,6 @@ class DatasetFolder(object):
             class_file = self.data[index][:9]
             sp_label = self.class_file_to_superclasses[class_file]
             sp_label = torch.tensor(sp_label)
-
-            # import ipdb; ipdb.set_trace()
 
             return img, label, sp_label
         else:

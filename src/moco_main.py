@@ -25,7 +25,7 @@ import datasets
 import models
 from graph import Graph
 from utils import configuration, miscellaneous
-from supMoCo import ComboLoss, MoCo
+from moco.builder import MoCo
 
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -89,7 +89,7 @@ def main_worker(gpu, ngpus_per_node, args, classFile_to_superclasses):
     # ----------------------------------------------------------- #
     # Build model
     # ----------------------------------------------------------- #
-    model = MoCo(models.__dict__[args.arch], args.gpu, args.moco_dim, args.moco_k, args.moco_m, args.moco_t)
+    model = MoCo(models.__dict__[args.arch], args.moco_dim, args.moco_k, args.moco_m, args.moco_t)
 
     optimizer = get_optimizer(model, args)
 
@@ -122,7 +122,7 @@ def main_worker(gpu, ngpus_per_node, args, classFile_to_superclasses):
 
 
     # define loss function (criterion)
-    criterion = ComboLoss(args.loss_alpha, args.loss_beta).cuda(args.gpu)
+    criterion = nn.CrossEntropyLoss().cuda(args.gpu)
 
     for epoch in tqdm_loop:
         train_sampler.set_epoch(epoch)
@@ -140,13 +140,6 @@ def main_worker(gpu, ngpus_per_node, args, classFile_to_superclasses):
                 'state_dict': model.state_dict(),
                 'optimizer': optimizer.state_dict(),
             }, is_best=False, folder=args.save_path)
-            if epoch % 100 == 99:
-                save_checkpoint({
-                    'epoch': epoch + 1,
-                    'arch': args.arch,
-                    'state_dict': model.state_dict(),
-                    'optimizer': optimizer.state_dict(),
-                }, is_best=False, filename=f'checkpoint_{epoch}.pth.tar', folder=args.save_path)
 
 
 
@@ -177,32 +170,28 @@ def train(train_loader, model, criterion, optimizer, epoch, args, log):
         # print(f'In {args.gpu}, before pass to model')
 
 
-        output, sp_loss = model(input_q, input_k, target)
+        output, target = model(input_q, input_k)
 
         # ----------------------------------------------------------- #
         # Contrative loss version
         # ----------------------------------------------------------- #
         # print(f'In {args.gpu}, after pass to model')
-        cel_loss, loss = criterion(output, target, sp_loss)
+        loss = criterion(output, target)
         # print(f'In {args.gpu}, the {i}th loss is {loss.item()}')
 
         # measure accuracy and record loss
         losses.update(loss.item(), input_q.size(0))
-        cel_losses.update(cel_loss.item(), input_q.size(0))
-        sp_losses.update(sp_loss.item(), input_q.size(0))
+        # cel_losses.update(cel_loss.item(), input_q.size(0))
+        # sp_losses.update(sp_loss.item(), input_q.size(0))
 
         # compute gradient and do SGD step
         optimizer.zero_grad()
-        if epoch == 0 and i < 20:
-            pass
-        else:
-            loss.backward()
-            optimizer.step()
+        loss.backward()
+        optimizer.step()
 
         prec1, prec5 = accuracy(output, target, topk=(1, 5))
         top1.update(prec1[0], input_q.size(0))
         top5.update(prec5[0], input_q.size(0))
-
 
         batch_time.update(time.time() - end)
         end = time.time()
@@ -216,23 +205,25 @@ def train(train_loader, model, criterion, optimizer, epoch, args, log):
             #             'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
             #         epoch, i, len(train_loader), batch_time=batch_time,
             #         data_time=data_time, loss=losses, top1=top1, top5=top5))
-            # log.info('Epoch: [{:2d}][{:3d}/{:3d}]\t'
-            #         'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-            #         'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
-            #         'Loss {loss.val:.4f} ({loss.avg:.4f}))'.format(
-            #     epoch, i, len(train_loader), batch_time=batch_time,
-            #     data_time=data_time, loss=losses))
             log.info('Epoch: [{:2d}][{:3d}/{:3d}]\t'
                     'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                     'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
-                    'CEL Loss {cel_loss.val:.4f} ({cel_loss.avg:.4f})\t'
-                    'SP Loss {sp_loss.val:.4f} ({sp_loss.avg:.4f})\t'
                     'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                     'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
                     'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
                 epoch, i, len(train_loader), batch_time=batch_time,
-                data_time=data_time, cel_loss=cel_losses, sp_loss=sp_losses,
-                loss=losses, top1=top1, top5=top5))
+                data_time=data_time, loss=losses, top1=top1, top5=top5))
+                # print('Epoch: [{:2d}][{:3d}/{:3d}]\t'
+                #         'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+                #         'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
+                #         'CEL Loss {cel_loss.val:.4f} ({cel_loss.avg:.4f})\t'
+                #         'SP Loss {sp_loss.val:.4f} ({sp_loss.avg:.4f})\t'
+                #         'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                #         'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
+                #         'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
+                #     epoch, i, len(train_loader), batch_time=batch_time,
+                #     data_time=data_time, cel_loss=cel_losses, sp_loss=sp_losses,
+                #     loss=losses, top1=top1, top5=top5))
 
 
 
